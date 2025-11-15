@@ -734,6 +734,20 @@ def setup_demo_data():
     except Exception as e:
         return f'Error creating demo data: {str(e)}'
 
+@bp.route('/check-users')
+def check_users():
+    """Debug route to check existing users"""
+    users = User.query.all()
+    if not users:
+        return "No users found in database!"
+    
+    result = "<h2>Existing Users:</h2>"
+    for user in users:
+        password = user.mother_name + user.dob
+        result += f"<p><strong>{user.prn_number}</strong> - {user.name} - Password: {password} - Role: {user.role}</p>"
+    
+    return result + '<p><a href="/">Go to Login</a></p>'
+
 @bp.route('/library-attendance')
 @login_required
 def library_attendance():
