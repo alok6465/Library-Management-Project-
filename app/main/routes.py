@@ -736,17 +736,33 @@ def setup_demo_data():
 
 @bp.route('/check-users')
 def check_users():
-    """Debug route to check existing users"""
-    users = User.query.all()
-    if not users:
-        return "No users found in database!"
+    """Show sample login credentials"""
+    total_users = User.query.count()
+    students = User.query.filter_by(role='student').limit(10).all()
+    admins = User.query.filter_by(role='admin').all()
     
-    result = "<h2>Existing Users:</h2>"
-    for user in users:
+    if total_users == 0:
+        return "<h2>No users found! Please restart the app to create demo data.</h2>"
+    
+    result = f"<h2>Library Management System - Login Credentials</h2>"
+    result += f"<p><strong>Total Users:</strong> {total_users} ({User.query.filter_by(role='student').count()} Students, {User.query.filter_by(role='admin').count()} Admins)</p>"
+    
+    result += "<h3>Sample Student Logins (First 10):</h3><ul>"
+    for user in students:
         password = user.mother_name + user.dob
-        result += f"<p><strong>{user.prn_number}</strong> - {user.name} - Password: {password} - Role: {user.role}</p>"
+        result += f"<li><strong>{user.prn_number}</strong> / {password} - {user.name} ({user.course}, {user.year})</li>"
+    result += "</ul>"
     
-    return result + '<p><a href="/">Go to Login</a></p>'
+    result += "<h3>Admin Logins:</h3><ul>"
+    for user in admins:
+        password = user.mother_name + user.dob
+        result += f"<li><strong>{user.prn_number}</strong> / {password} - {user.name}</li>"
+    result += "</ul>"
+    
+    result += '<p><strong>Password Format:</strong> Mother\'s Name + Date of Birth (DDMMYYYY)</p>'
+    result += '<p><a href="/auth/student-login">Student Login</a> | <a href="/auth/admin-login">Admin Login</a></p>'
+    
+    return result
 
 @bp.route('/library-attendance')
 @login_required
