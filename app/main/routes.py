@@ -637,6 +637,103 @@ def user_activity():
     return render_template('main/user_activity.html', title='User Activity',
                          monthly_loans=monthly_loans, library_hours=library_hours)
 
+@bp.route('/setup-demo-data')
+def setup_demo_data():
+    """Create sample users and books for demo"""
+    try:
+        # Check if data already exists
+        if User.query.count() > 0:
+            return "Demo data already exists!"
+        
+        # Create 5 sample students
+        students_data = [
+            ('PRN2024001', 'Rahul Sharma', 'Sunita', '15081995'),
+            ('PRN2024002', 'Priya Patel', 'Meera', '22031998'),
+            ('PRN2024003', 'Amit Kumar', 'Geeta', '10121997'),
+            ('PRN2024004', 'Sneha Singh', 'Kavita', '05071999'),
+            ('PRN2024005', 'Vikash Gupta', 'Sita', '18092000')
+        ]
+        
+        for prn, name, mother_name, dob in students_data:
+            student = User(
+                prn_number=prn,
+                username=prn.lower(),
+                name=name,
+                email=f'{prn.lower()}@college.edu',
+                mother_name=mother_name,
+                dob=dob,
+                phone='9876543210',
+                address='Demo Address',
+                role='student',
+                year='2nd',
+                course='BSC IT'
+            )
+            password = mother_name + dob
+            student.set_password(password)
+            db.session.add(student)
+        
+        # Create 2 sample admins
+        admins_data = [
+            ('ADM2024001', 'Dr. Rajesh Kumar', 'Usha', '25061975'),
+            ('ADM2024002', 'Prof. Sunita Sharma', 'Lata', '12041978')
+        ]
+        
+        for prn, name, mother_name, dob in admins_data:
+            admin = User(
+                prn_number=prn,
+                username=prn.lower(),
+                name=name,
+                email=f'{prn.lower()}@college.edu',
+                mother_name=mother_name,
+                dob=dob,
+                phone='9999999999',
+                address='Admin Office',
+                role='admin'
+            )
+            password = mother_name + dob
+            admin.set_password(password)
+            db.session.add(admin)
+        
+        # Create sample books
+        books_data = [
+            ('Python Programming', 'John Smith', 3),
+            ('Data Structures', 'Robert Johnson', 2),
+            ('Web Development', 'Sarah Wilson', 4),
+            ('Database Systems', 'Mike Brown', 2),
+            ('Computer Networks', 'Lisa Davis', 3)
+        ]
+        
+        for title, author, copies in books_data:
+            book = Book(
+                title=title,
+                author=author,
+                copies_total=copies,
+                copies_available=copies
+            )
+            db.session.add(book)
+        
+        db.session.commit()
+        
+        return '''<h2>Demo Data Created Successfully!</h2>
+        <h3>Login Credentials:</h3>
+        <h4>Students:</h4>
+        <ul>
+        <li>PRN2024001 / Sunita15081995</li>
+        <li>PRN2024002 / Meera22031998</li>
+        <li>PRN2024003 / Geeta10121997</li>
+        <li>PRN2024004 / Kavita05071999</li>
+        <li>PRN2024005 / Sita18092000</li>
+        </ul>
+        <h4>Admins:</h4>
+        <ul>
+        <li>ADM2024001 / Usha25061975</li>
+        <li>ADM2024002 / Lata12041978</li>
+        </ul>
+        <p><a href="/">Go to Login Page</a></p>'''
+        
+    except Exception as e:
+        return f'Error creating demo data: {str(e)}'
+
 @bp.route('/library-attendance')
 @login_required
 def library_attendance():
