@@ -878,3 +878,43 @@ def add_library_session():
     db.session.commit()
     
     return jsonify({'success': True, 'message': f'Added {hours} hours for {student.name}'})
+
+@bp.route('/view-database')
+def view_database():
+    """View all database contents"""
+    result = "<h2>Database Contents</h2>"
+    
+    # Users
+    users = User.query.all()
+    result += f"<h3>USERS ({len(users)} total):</h3><ul>"
+    for user in users:
+        result += f"<li>ID: {user.id} | PRN: {user.prn_number} | Name: {user.name} | Role: {user.role}</li>"
+    result += "</ul>"
+    
+    # Books
+    books = Book.query.all()
+    result += f"<h3>BOOKS ({len(books)} total):</h3><ul>"
+    for book in books:
+        result += f"<li>ID: {book.id} | Title: {book.title} | Author: {book.author} | Available: {book.copies_available}/{book.copies_total}</li>"
+    result += "</ul>"
+    
+    # Loans
+    loans = Loan.query.all()
+    result += f"<h3>LOANS ({len(loans)} total):</h3><ul>"
+    for loan in loans:
+        user = User.query.filter_by(id=loan.user_id).first()
+        book = Book.query.filter_by(id=loan.book_id).first()
+        status = "Returned" if loan.return_date else "Active"
+        result += f"<li>ID: {loan.id} | User: {user.name if user else 'Unknown'} | Book: {book.title if book else 'Unknown'} | Status: {status}</li>"
+    result += "</ul>"
+    
+    # Notices
+    notices = Notice.query.all()
+    result += f"<h3>NOTICES ({len(notices)} total):</h3><ul>"
+    for notice in notices:
+        creator = User.query.filter_by(id=notice.created_by).first()
+        result += f"<li>ID: {notice.id} | Title: {notice.title} | Type: {notice.recipient_type} | By: {creator.name if creator else 'Unknown'}</li>"
+    result += "</ul>"
+    
+    result += '<p><a href="/">Back to Home</a></p>'
+    return result
