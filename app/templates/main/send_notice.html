@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-megaphone"></i> Send Notice</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-semibold">Notice Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="message" class="form-label fw-semibold">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="recipient_type" class="form-label fw-semibold">Send To</label>
+                        <select class="form-select" id="recipient_type" name="recipient_type" onchange="toggleRecipient()">
+                            <option value="all">All Users</option>
+                            <option value="student">All Students</option>
+                            <option value="specific">Specific Student</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4" id="specific_recipient" style="display: none;">
+                        <label for="student_search" class="form-label fw-semibold">Select Students</label>
+                        <div class="mb-2">
+                            <input type="text" class="form-control" id="student_search" 
+                                   placeholder="Search students by name or PRN..." onkeyup="filterStudents()">
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;" id="students_list">
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAll()">Select All</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearAll()">Clear All</button>
+                                <span class="ms-2 text-muted" id="selected_count">0 selected</span>
+                            </div>
+                            {% for student in students %}
+                            <div class="form-check student-item" data-name="{{ student.name.lower() }}" data-prn="{{ student.prn_number.lower() }}">
+                                <input class="form-check-input" type="checkbox" name="recipient_ids" 
+                                       value="{{ student.id }}" id="student_{{ student.id }}" onchange="updateCount()">
+                                <label class="form-check-label" for="student_{{ student.id }}">
+                                    {{ student.name }} ({{ student.prn_number }})
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Send Notice</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleRecipient() {
+    const recipientType = document.getElementById('recipient_type').value;
+    const specificDiv = document.getElementById('specific_recipient');
+    
+    if (recipientType === 'specific') {
+        specificDiv.style.display = 'block';
+    } else {
+        specificDiv.style.display = 'none';
+        clearAll();
+    }
+}
+
+function filterStudents() {
+    const searchTerm = document.getElementById('student_search').value.toLowerCase();
+    const students = document.querySelectorAll('.student-item');
+    
+    students.forEach(student => {
+        const name = student.getAttribute('data-name');
+        const prn = student.getAttribute('data-prn');
+        
+        if (name.includes(searchTerm) || prn.includes(searchTerm)) {
+            student.style.display = 'block';
+        } else {
+            student.style.display = 'none';
+        }
+    });
+}
+
+function selectAll() {
+    const checkboxes = document.querySelectorAll('input[name="recipient_ids"]:not([style*="display: none"])');
+    const visibleCheckboxes = Array.from(checkboxes).filter(cb => 
+        cb.closest('.student-item').style.display !== 'none'
+    );
+    
+    visibleCheckboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateCount();
+}
+
+function clearAll() {
+    const checkboxes = document.querySelectorAll('input[name="recipient_ids"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateCount();
+}
+
+function updateCount() {
+    const checkedBoxes = document.querySelectorAll('input[name="recipient_ids"]:checked');
+    document.getElementById('selected_count').textContent = checkedBoxes.length + ' selected';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Book Details - {{ book.title }}</h2>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-book"></i> Book Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Title:</strong> {{ book.title }}</p>
+                <p><strong>Author:</strong> {{ book.author }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Total Copies:</strong> {{ book.copies_total }}</p>
+                <p><strong>Available Copies:</strong> {{ book.copies_available }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if active_loans %}
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="bi bi-person-check"></i> Current Borrowers ({{ active_loans|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>PRN</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in active_loans %}
+                    <tr>
+                        <td>{{ loan.borrower.name }}</td>
+                        <td>{{ loan.borrower.prn_number }}</td>
+                        <td>{{ loan.issue_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ loan.due_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if loan.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% else %}
+                                <span class="badge bg-success">On Time</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                    data-bs-target="#noticeModal{{ loan.borrower.id }}">
+                                <i class="bi bi-envelope"></i> Send Notice
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Loan History</h5>
+    </div>
+    <div class="card-body">
+        {% if loan_history %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>PRN</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loan_history %}
+                    <tr>
+                        <td>{{ loan.borrower.name }}</td>
+                        <td>{{ loan.borrower.prn_number }}</td>
+                        <td>{{ loan.issue_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ loan.due_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if loan.return_date %}
+                                {{ loan.return_date.strftime('%Y-%m-%d') }}
+                            {% else %}
+                                <span class="text-warning">Not Returned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not loan.return_date %}
+                                {% if loan.is_overdue %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            {% elif loan.return_date > loan.due_date %}
+                                <span class="badge bg-warning">Late Return</span>
+                            {% else %}
+                                <span class="badge bg-success">Returned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No loan history for this book.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Notice Modals for Active Borrowers -->
+{% for loan in active_loans %}
+<div class="modal fade" id="noticeModal{{ loan.borrower.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Notice to {{ loan.borrower.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.send_user_notice', user_id=loan.borrower.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title{{ loan.borrower.id }}" class="form-label">Notice Title</label>
+                        <input type="text" class="form-control" id="title{{ loan.borrower.id }}" name="title" 
+                               value="Book Return Reminder - {{ book.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message{{ loan.borrower.id }}" class="form-label">Message</label>
+                        <textarea class="form-control" id="message{{ loan.borrower.id }}" name="message" rows="4" required>Dear {{ loan.borrower.name }},
+
+This is a reminder that your borrowed book "{{ book.title }}" is due on {{ loan.due_date.strftime('%Y-%m-%d') }}.
+
+Please return the book on time to avoid any fines.
+
+Thank you,
+Library Administration</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Notice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2><i class="bi bi-box-arrow-in-right"></i> Sign In</h2>
+            <p>Welcome back to LibraryPro</p>
+            <div class="alert alert-info">
+                <strong>Login Instructions:</strong><br>
+                <strong>PRN Number:</strong> Your college PRN (e.g., PRN2024001)<br>
+                <strong>Password:</strong> MotherName+DOB (e.g., Sunita15081995)
+            </div>
+        </div>
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.prn_number.label(class="form-label fw-semibold") }}
+                {{ form.prn_number(class="form-control", placeholder="e.g., PRN2024001") }}
+                {% for error in form.prn_number.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-4">
+                {{ form.password.label(class="form-label fw-semibold") }}
+                {{ form.password(class="form-control", placeholder="e.g., Sunita15081995") }}
+                {% for error in form.password.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted">Use your college PRN and password (MotherName+DOB)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-clock-history"></i> Request Extension</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info">
+                    <strong>Book:</strong> {{ loan.book.title }}<br>
+                    <strong>Author:</strong> {{ loan.book.author }}<br>
+                    <strong>Current Due Date:</strong> {{ loan.due_date.strftime('%Y-%m-%d') }}<br>
+                    {% if loan.is_overdue %}
+                        <span class="badge bg-danger">This book is overdue!</span>
+                    {% endif %}
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="requested_days" class="form-label fw-semibold">Extension Days (1-14 days)</label>
+                        <select class="form-select" id="requested_days" name="requested_days" required>
+                            <option value="">Select days...</option>
+                            {% for i in range(1, 15) %}
+                                <option value="{{ i }}">{{ i }} day{{ 's' if i > 1 else '' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="reason" class="form-label fw-semibold">Reason for Extension</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="4" 
+                                  placeholder="Please provide a detailed reason for requesting extension..." required></textarea>
+                        <div class="form-text">Be specific about why you need more time with this book.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

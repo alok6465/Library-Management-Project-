@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2><i class="bi bi-shield-lock text-danger"></i> Admin Login</h2>
+            <p>Administrator Access to LibraryPro</p>
+            <div class="alert alert-warning">
+                <strong>Admin Login Instructions:</strong><br>
+                <strong>PRN Number:</strong> Your admin PRN (e.g., ADM2024001)<br>
+                <strong>Password:</strong> MotherName+DOB (e.g., Kiran10031981)
+            </div>
+        </div>
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.prn_number.label(class="form-label fw-semibold") }}
+                {{ form.prn_number(class="form-control", placeholder="e.g., ADM2024001") }}
+                {% for error in form.prn_number.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-4">
+                {{ form.password.label(class="form-label fw-semibold") }}
+                {{ form.password(class="form-control", placeholder="e.g., Kiran10031981") }}
+                {% for error in form.password.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-danger btn-lg") }}
+            </div>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted">Are you a Student? 
+                <a href="{{ url_for('auth.student_login') }}" class="text-decoration-none">Student Login</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2><i class="bi bi-person-plus"></i> Register</h2>
+            <p>Join LibraryPro today</p>
+        </div>
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.prn_number.label(class="form-label fw-semibold") }}
+                {{ form.prn_number(class="form-control", placeholder="e.g., PRN2024121") }}
+                {% for error in form.prn_number.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.username.label(class="form-label fw-semibold") }}
+                {{ form.username(class="form-control") }}
+                {% for error in form.username.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.name.label(class="form-label fw-semibold") }}
+                {{ form.name(class="form-control") }}
+                {% for error in form.name.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.email.label(class="form-label fw-semibold") }}
+                {{ form.email(class="form-control") }}
+                {% for error in form.email.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.mother_name.label(class="form-label fw-semibold") }}
+                    {{ form.mother_name(class="form-control", placeholder="e.g., Sunita") }}
+                    {% for error in form.mother_name.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.dob.label(class="form-label fw-semibold") }}
+                    {{ form.dob(class="form-control", placeholder="e.g., 15081995") }}
+                    {% for error in form.dob.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                {{ form.phone.label(class="form-label fw-semibold") }}
+                {{ form.phone(class="form-control", placeholder="Optional") }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.address.label(class="form-label fw-semibold") }}
+                {{ form.address(class="form-control", placeholder="Optional") }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.role.label(class="form-label fw-semibold") }}
+                {{ form.role(class="form-select") }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.password.label(class="form-label fw-semibold") }}
+                {{ form.password(class="form-control") }}
+                {% for error in form.password.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-4">
+                {{ form.password2.label(class="form-label fw-semibold") }}
+                {{ form.password2(class="form-control") }}
+                {% for error in form.password2.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted">Already have an account? 
+                <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Sign in here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

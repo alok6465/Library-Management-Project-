@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-shield-check"></i> Manage Administrators</h2>
+                <a href="{{ url_for('main.add_admin') }}" class="btn btn-primary">
+                    <i class="bi bi-person-plus"></i> Add Admin
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>PRN</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for admin in admins %}
+                                <tr>
+                                    <td>{{ admin.prn_number }}</td>
+                                    <td>{{ admin.name }}</td>
+                                    <td>{{ admin.email }}</td>
+                                    <td>{{ admin.phone or 'N/A' }}</td>
+                                    <td>{{ admin.created_at.strftime('%Y-%m-%d') if admin.created_at else 'N/A' }}</td>
+                                    <td>
+                                        {% if admin.id != current_user.id %}
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="confirmDelete({{ admin.id }}, '{{ admin.name }}')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                        {% else %}
+                                        <span class="badge bg-info">Current User</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning mt-4">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Warning:</strong> Be careful when deleting admin accounts. You cannot delete your own account.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(adminId, adminName) {
+    if (confirm(`Are you sure you want to delete admin "${adminName}"? This action cannot be undone.`)) {
+        window.location.href = `/delete-admin/${adminId}`;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-pencil"></i> Edit Student: {{ student.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="prn_number" class="form-label">PRN Number</label>
+                                    <input type="text" class="form-control" value="{{ student.prn_number }}" disabled>
+                                    <small class="text-muted">PRN cannot be changed</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ student.name }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="year" class="form-label">Year *</label>
+                                    <select class="form-select" id="year" name="year" required>
+                                        <option value="">Select Year</option>
+                                        <option value="1st" {{ 'selected' if student.year == '1st' }}>1st Year</option>
+                                        <option value="2nd" {{ 'selected' if student.year == '2nd' }}>2nd Year</option>
+                                        <option value="3rd" {{ 'selected' if student.year == '3rd' }}>3rd Year</option>
+                                        <option value="4th" {{ 'selected' if student.year == '4th' }}>4th Year</option>
+                                        <option value="5th" {{ 'selected' if student.year == '5th' }}>5th Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="course" class="form-label">Course *</label>
+                                    <select class="form-select" id="course" name="course" required>
+                                        <option value="">Select Course</option>
+                                        <option value="BSC IT" {{ 'selected' if student.course == 'BSC IT' }}>BSC IT</option>
+                                        <option value="BSC CS" {{ 'selected' if student.course == 'BSC CS' }}>BSC CS</option>
+                                        <option value="BTech Computer Science" {{ 'selected' if student.course == 'BTech Computer Science' }}>BTech Computer Science</option>
+                                        <option value="BTech Data Science" {{ 'selected' if student.course == 'BTech Data Science' }}>BTech Data Science</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ student.email }}" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mother_name" class="form-label">Mother's Name *</label>
+                                    <input type="text" class="form-control" id="mother_name" name="mother_name" 
+                                           value="{{ student.mother_name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dob" class="form-label">Date of Birth (DDMMYYYY) *</label>
+                                    <input type="text" class="form-control" id="dob" name="dob" 
+                                           value="{{ student.dob }}" pattern="[0-9]{8}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ student.phone or '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3">{{ student.address or '' }}</textarea>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Password will be updated to: <strong>Mother's Name + Date of Birth</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('main.manage_students') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Update Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

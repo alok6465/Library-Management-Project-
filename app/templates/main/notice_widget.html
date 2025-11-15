@@ -1,0 +1,49 @@
+<!-- Notice Board Widget -->
+<div class="notice-widget">
+    <div class="notice-header">
+        <h6 class="mb-0">
+            <i class="bi bi-bell-fill text-warning"></i> Notice Board
+        </h6>
+        <a href="{{ url_for('main.view_notices') }}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    
+    <div class="notice-content">
+        {% if recent_notices %}
+            {% for notice in recent_notices %}
+            <div class="notice-item {% if notice.is_new %}notice-new{% endif %}">
+                <div class="notice-title">
+                    {{ notice.title }}
+                    {% if notice.is_new %}
+                        <span class="badge bg-danger ms-1">NEW</span>
+                    {% endif %}
+                </div>
+                <div class="notice-meta">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3"></i> {{ notice.created_date.strftime('%m/%d') }}
+                        {% if current_user.role == 'student' %}
+                            | <i class="bi bi-person"></i> {{ notice.creator.name }}
+                        {% else %}
+                            | To: 
+                            {% if notice.recipient_type == 'all' %}
+                                All Users
+                            {% elif notice.recipient_type == 'student' %}
+                                All Students
+                            {% else %}
+                                {{ notice.recipients|length }} Student(s)
+                            {% endif %}
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="notice-preview">
+                    {{ notice.message[:80] }}{% if notice.message|length > 80 %}...{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-notices">
+                <i class="bi bi-bell-slash text-muted"></i>
+                <p class="text-muted mb-0">No recent notices</p>
+            </div>
+        {% endif %}
+    </div>
+</div>

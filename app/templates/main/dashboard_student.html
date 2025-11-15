@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="mb-4">Student Dashboard</h2>
+    </div>
+    <div class="col-md-4">
+        {% include 'main/notice_widget.html' %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card primary">
+            <h3>{{ books|length }}</h3>
+            <p>Total Books Available</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card warning">
+            <h3>{{ my_loans|length }}</h3>
+            <p>Books Currently Borrowed</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card success">
+            <a href="{{ url_for('main.view_notices') }}" class="text-white text-decoration-none">
+                <h3><i class="bi bi-bell"></i></h3>
+                <p>Notice Board</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if my_loans %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-book"></i> My Borrowed Books</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Author</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in my_loans %}
+                    <tr>
+                        <td class="book-title">{{ loan.book.title }}</td>
+                        <td>{{ loan.book.author }}</td>
+                        <td>{{ loan.issue_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ loan.due_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if loan.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% else %}
+                                <span class="badge bg-success">On Time</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set pending_requests = loan.extension_requests|selectattr('status', 'equalto', 'pending')|list %}
+                            {% set recent_requests = loan.extension_requests|selectattr('response_date')|sort(attribute='response_date', reverse=true)|list %}
+                            {% set recent_request = recent_requests[0] if recent_requests else none %}
+                            
+                            {% if pending_requests %}
+                                <span class="badge bg-warning mb-1">Extension Pending</span><br>
+                            {% elif recent_request and recent_request.response_date and not recent_request.is_status_expired() %}
+                                {% if recent_request.status == 'approved' %}
+                                    <span class="badge bg-success mb-1">Extension Approved</span><br>
+                                    <small class="text-muted">{{ recent_request.admin_response }}</small><br>
+                                {% elif recent_request.status == 'rejected' %}
+                                    <span class="badge bg-danger mb-1">Extension Rejected</span><br>
+                                    <small class="text-muted">{{ recent_request.admin_response }}</small><br>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ url_for('main.request_extension', loan_id=loan.id) }}" 
+                                   class="btn btn-sm btn-warning me-1">Request Extension</a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('main.return_book', loan_id=loan.id) }}" 
+                               class="btn btn-sm btn-success">Return</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-collection"></i> Available Books</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for book in books %}
+            <div class="col-md-4 mb-4">
+                <div class="card book-card">
+                    <div class="card-body">
+                        <h6 class="book-title">{{ book.title }}</h6>
+                        <p class="book-author">by {{ book.author }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="availability-badge badge {% if book.copies_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ book.copies_available }}/{{ book.copies_total }} available
+                            </span>
+                            {% if book.copies_available > 0 %}
+                                <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" 
+                                   class="btn btn-sm btn-primary">Borrow</a>
+                            {% else %}
+                                <button class="btn btn-sm btn-secondary" disabled>Unavailable</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+    </div>
+    <div class="col-md-4">
+        <!-- Notice widget is above -->
+    </div>
+</div>
+
+
+{% endblock %}

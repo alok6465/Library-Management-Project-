@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-building"></i> Library Attendance Management</h2>
+            <p class="text-muted">Track offline library study hours for students</p>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Add Library Session</h5>
+                </div>
+                <div class="card-body">
+                    <form id="attendanceForm">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="student_id" class="form-label">Student</label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="studentSearch" 
+                                               placeholder="Search by PRN or Name..." autocomplete="off">
+                                        <select class="form-select d-none" id="student_id" name="student_id" required>
+                                            <option value="">Select Student</option>
+                                            {% for student in students %}
+                                            <option value="{{ student.id }}" data-prn="{{ student.prn_number }}" data-name="{{ student.name }}">
+                                                {{ student.prn_number }} - {{ student.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div id="studentDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="date" name="date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="hours" class="form-label">Hours</label>
+                                    <input type="number" class="form-control" id="hours" name="hours" 
+                                           min="0.5" max="12" step="0.5" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary d-block">
+                                        <i class="bi bi-plus"></i> Add Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="message" class="mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Students Library Hours Summary -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Students Library Hours Summary</h5>
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="summarySearch" 
+                                       placeholder="Search by PRN, Name, Course...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSummarySearch()">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="summaryTable">
+                            <thead>
+                                <tr>
+                                    <th>PRN</th>
+                                    <th>Name</th>
+                                    <th>Year</th>
+                                    <th>Course</th>
+                                    <th>This Month (Hours)</th>
+                                    <th>This Year (Hours)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.prn_number }}</td>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.year or 'N/A' }}</td>
+                                    <td>{{ student.course or 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ "%.1f"|format(student.library_hours_this_month or 0) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ "%.1f"|format(student.library_hours_this_year or 0) }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="quickAdd('{{ student.id }}', '{{ student.name }}')">
+                                            <i class="bi bi-plus-circle"></i> Quick Add
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Add Library Hours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickAddForm">
+                    <input type="hidden" id="quick_student_id" name="student_id">
+                    <div class="mb-3">
+                        <label class="form-label">Student</label>
+                        <input type="text" class="form-control" id="quick_student_name" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="quick_date" name="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_hours" class="form-label">Hours</label>
+                        <select class="form-select" id="quick_hours" name="hours" required>
+                            <option value="1">1 Hour</option>
+                            <option value="2">2 Hours</option>
+                            <option value="3">3 Hours</option>
+                            <option value="4">4 Hours</option>
+                            <option value="5">5 Hours</option>
+                            <option value="6">6 Hours</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitQuickAdd()">Add Hours</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set today's date as default
+document.getElementById('date').valueAsDate = new Date();
+document.getElementById('quick_date').valueAsDate = new Date();
+
+// Student search functionality
+const studentSearch = document.getElementById('studentSearch');
+const studentSelect = document.getElementById('student_id');
+const studentDropdown = document.getElementById('studentDropdown');
+let students = [];
+
+// Load students data
+for (let option of studentSelect.options) {
+    if (option.value) {
+        students.push({
+            id: option.value,
+            prn: option.dataset.prn,
+            name: option.dataset.name,
+            text: option.textContent
+        });
+    }
+}
+
+function showStudentDropdown(filteredStudents) {
+    studentDropdown.innerHTML = '';
+    
+    if (filteredStudents.length === 0) {
+        studentDropdown.innerHTML = '<div class="dropdown-item text-muted">No students found</div>';
+    } else {
+        filteredStudents.forEach(student => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.style.cursor = 'pointer';
+            item.textContent = student.text;
+            item.onclick = () => selectStudent(student);
+            studentDropdown.appendChild(item);
+        });
+    }
+    
+    studentDropdown.classList.add('show');
+}
+
+function selectStudent(student) {
+    studentSearch.value = student.text;
+    studentSelect.value = student.id;
+    studentDropdown.classList.remove('show');
+}
+
+studentSearch.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    
+    if (query.length === 0) {
+        studentDropdown.classList.remove('show');
+        studentSelect.value = '';
+        return;
+    }
+    
+    const filtered = students.filter(student => 
+        student.prn.toLowerCase().includes(query) || 
+        student.name.toLowerCase().includes(query)
+    );
+    
+    showStudentDropdown(filtered);
+});
+
+studentSearch.addEventListener('focus', function() {
+    if (this.value.length > 0) {
+        const query = this.value.toLowerCase();
+        const filtered = students.filter(student => 
+            student.prn.toLowerCase().includes(query) || 
+            student.name.toLowerCase().includes(query)
+        );
+        showStudentDropdown(filtered);
+    }
+});
+
+// Hide dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!studentSearch.contains(e.target) && !studentDropdown.contains(e.target)) {
+        studentDropdown.classList.remove('show');
+    }
+});
+
+// Main form submission
+document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/add-library-session', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const messageDiv = document.getElementById('message');
+        if (data.success) {
+            messageDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+            this.reset();
+            document.getElementById('date').valueAsDate = new Date();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            messageDiv.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+        }
+    });
+});
+
+// Quick add functions
+function quickAdd(studentId, studentName) {
+    document.getElementById('quick_student_id').value = studentId;
+    document.getElementById('quick_student_name').value = studentName;
+    new bootstrap.Modal(document.getElementById('quickAddModal')).show();
+}
+
+// Clear search when form is reset
+document.getElementById('attendanceForm').addEventListener('reset', function() {
+    studentSearch.value = '';
+    studentSelect.value = '';
+    studentDropdown.classList.remove('show');
+});
+
+function submitQuickAdd() {
+    const formData = new FormData(document.getElementById('quickAddForm'));
+    
+    fetch('/add-library-session', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('quickAddModal')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+
+// Summary table search functionality
+function filterSummaryTable() {
+    const searchInput = document.getElementById('summarySearch').value.toLowerCase();
+    const table = document.getElementById('summaryTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let found = false;
+        
+        // Search in PRN, Name, Year, Course columns (first 4 columns)
+        for (let j = 0; j < 4; j++) {
+            if (cells[j] && cells[j].textContent.toLowerCase().includes(searchInput)) {
+                found = true;
+                break;
+            }
+        }
+        
+        rows[i].style.display = found ? '' : 'none';
+    }
+}
+
+function clearSummarySearch() {
+    document.getElementById('summarySearch').value = '';
+    filterSummaryTable();
+}
+
+// Add event listeners when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const summarySearch = document.getElementById('summarySearch');
+    if (summarySearch) {
+        summarySearch.addEventListener('keyup', filterSummaryTable);
+        summarySearch.addEventListener('input', filterSummaryTable);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-graph-up"></i> User Activity Dashboard</h2>
+            
+            <!-- Monthly Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-book"></i> Books Borrowed This Month</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Books Borrowed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for loan in monthly_loans %}
+                                        <tr>
+                                            <td>{{ loan.name }}</td>
+                                            <td><span class="badge bg-primary">{{ loan.loans_count }}</span></td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-clock"></i> Library Hours This Month</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for student in library_hours %}
+                                        <tr>
+                                            <td>{{ student.name }}</td>
+                                            <td><span class="badge bg-success">{{ "%.1f"|format(student.library_hours_this_month) }}h</span></td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Library Check-in/out System -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-building"></i> Library Session Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Students can check in/out of the library to track study hours. 
+                        Hours are automatically calculated and added to monthly/yearly totals.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Top Students by Library Hours (This Year)</h6>
+                            <div class="list-group">
+                                {% for student in library_hours[:10] %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ student.name }}</strong>
+                                        <br><small class="text-muted">{{ student.prn_number }} - {{ student.course or 'N/A' }}</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ "%.1f"|format(student.library_hours_this_year) }}h</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>Activity Summary</h6>
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h4 class="text-primary">{{ monthly_loans|length }}</h4>
+                                            <small>Active Borrowers</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h4 class="text-success">{{ library_hours|length }}</h4>
+                                            <small>Library Users</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
