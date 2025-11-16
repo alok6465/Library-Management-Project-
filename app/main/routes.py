@@ -13,6 +13,37 @@ def index():
         return redirect(url_for('main.dashboard'))
     return render_template('index.html', title='Library Management System')
 
+@bp.route('/emergency-setup')
+def emergency_setup():
+    """Emergency route to create admin user"""
+    try:
+        # Clear and create fresh admin
+        db.session.query(User).delete()
+        db.session.commit()
+        
+        admin = User(
+            prn_number='ADMIN2024',
+            username='admin2024',
+            name='Emergency Admin',
+            email='admin@library.com',
+            mother_name='Admin',
+            dob='01012000',
+            phone='1234567890',
+            address='Library Office',
+            role='admin'
+        )
+        admin.set_password('Admin01012000')
+        db.session.add(admin)
+        db.session.commit()
+        
+        return '''<h2>✅ Emergency Admin Created!</h2>
+        <p><strong>PRN:</strong> ADMIN2024</p>
+        <p><strong>Password:</strong> Admin01012000</p>
+        <p><a href="/auth/admin-login">Login Now</a></p>'''
+        
+    except Exception as e:
+        return f'Error: {str(e)}'
+
 @bp.route('/dashboard')
 @login_required
 def dashboard():
