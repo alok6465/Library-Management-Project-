@@ -637,13 +637,17 @@ def user_activity():
     return render_template('main/user_activity.html', title='User Activity',
                          monthly_loans=monthly_loans, library_hours=library_hours)
 
-@bp.route('/setup-demo-data')
-def setup_demo_data():
+@bp.route('/create-demo-data')
+def create_demo_data():
     """Create sample users and books for demo"""
     try:
-        # Check if data already exists
-        if User.query.count() > 0:
-            return "Demo data already exists!"
+        # Clear existing data
+        db.session.query(Loan).delete()
+        db.session.query(Notice).delete()
+        db.session.query(ExtensionRequest).delete()
+        db.session.query(LibrarySession).delete()
+        db.session.query(User).delete()
+        db.session.query(Book).delete()
         
         # Create 5 sample students
         students_data = [
@@ -674,8 +678,8 @@ def setup_demo_data():
         
         # Create 2 sample admins
         admins_data = [
-            ('ADM2024001', 'Dr. Rajesh Kumar', 'Usha', '25061975'),
-            ('ADM2024002', 'Prof. Sunita Sharma', 'Lata', '12041978')
+            ('ADM2024001', 'Dr. Admin', 'Usha', '25061975'),
+            ('ADM2024002', 'Prof. Admin', 'Lata', '12041978')
         ]
         
         for prn, name, mother_name, dob in admins_data:
@@ -714,22 +718,23 @@ def setup_demo_data():
         
         db.session.commit()
         
-        return '''<h2>Demo Data Created Successfully!</h2>
-        <h3>Login Credentials:</h3>
-        <h4>Students:</h4>
-        <ul>
-        <li>PRN2024001 / Sunita15081995</li>
-        <li>PRN2024002 / Meera22031998</li>
-        <li>PRN2024003 / Geeta10121997</li>
-        <li>PRN2024004 / Kavita05071999</li>
-        <li>PRN2024005 / Sita18092000</li>
+        return '''<h2>✅ Demo Data Created Successfully!</h2>
+        <h3>🔑 LOGIN CREDENTIALS:</h3>
+        <h4>👨‍🎓 STUDENTS:</h4>
+        <ul style="font-family: monospace; font-size: 16px;">
+        <li><strong>PRN2024001</strong> / <strong>Sunita15081995</strong> (Rahul Sharma)</li>
+        <li><strong>PRN2024002</strong> / <strong>Meera22031998</strong> (Priya Patel)</li>
+        <li><strong>PRN2024003</strong> / <strong>Geeta10121997</strong> (Amit Kumar)</li>
+        <li><strong>PRN2024004</strong> / <strong>Kavita05071999</strong> (Sneha Singh)</li>
+        <li><strong>PRN2024005</strong> / <strong>Sita18092000</strong> (Vikash Gupta)</li>
         </ul>
-        <h4>Admins:</h4>
-        <ul>
-        <li>ADM2024001 / Usha25061975</li>
-        <li>ADM2024002 / Lata12041978</li>
+        <h4>👨‍💼 ADMINS:</h4>
+        <ul style="font-family: monospace; font-size: 16px;">
+        <li><strong>ADM2024001</strong> / <strong>Usha25061975</strong> (Dr. Admin)</li>
+        <li><strong>ADM2024002</strong> / <strong>Lata12041978</strong> (Prof. Admin)</li>
         </ul>
-        <p><a href="/">Go to Login Page</a></p>'''
+        <hr>
+        <p><a href="/auth/student-login" style="margin-right: 20px;">👨‍🎓 Student Login</a> | <a href="/auth/admin-login">👨‍💼 Admin Login</a></p>'''
         
     except Exception as e:
         return f'Error creating demo data: {str(e)}'
