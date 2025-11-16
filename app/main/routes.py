@@ -923,3 +923,40 @@ def view_database():
     
     result += '<p><a href="/">Back to Home</a></p>'
     return result
+
+@bp.route('/test-login')
+def test_login():
+    """Test login functionality"""
+    result = "<h2>🔍 Login Test Results</h2>"
+    
+    # Test admin credentials
+    test_prn = "ADM2024001"
+    test_password = "Usha25061975"
+    
+    user = User.query.filter_by(prn_number=test_prn).first()
+    
+    if user:
+        result += f"<p>✅ User found: {user.name} (Role: {user.role})</p>"
+        result += f"<p>📋 PRN: {user.prn_number}</p>"
+        result += f"<p>👩 Mother: {user.mother_name}</p>"
+        result += f"<p>📅 DOB: {user.dob}</p>"
+        result += f"<p>🔑 Expected Password: {user.mother_name + user.dob}</p>"
+        
+        if user.check_password(test_password):
+            result += "<p>✅ Password verification: SUCCESS</p>"
+        else:
+            result += "<p>❌ Password verification: FAILED</p>"
+            result += f"<p>🔍 Testing with: {test_password}</p>"
+    else:
+        result += f"<p>❌ User not found with PRN: {test_prn}</p>"
+        
+        # Show all users
+        all_users = User.query.all()
+        result += f"<h3>All Users ({len(all_users)}):</h3><ul>"
+        for u in all_users:
+            expected_pwd = u.mother_name + u.dob
+            result += f"<li>{u.prn_number} | {u.name} | Role: {u.role} | Password: {expected_pwd}</li>"
+        result += "</ul>"
+    
+    result += '<p><a href="/auth/admin-login">Try Admin Login</a> | <a href="/auth/student-login">Try Student Login</a></p>'
+    return result
