@@ -57,24 +57,25 @@ with app.app_context():
             db.session.add(student)
         
         print('Creating 5 admins...')
-        # Create 5 admins
-        admin_names = ['Dr. Rajesh Kumar', 'Prof. Sunita Sharma', 'Mr. Anil Gupta', 'Ms. Priya Verma', 'Dr. Suresh Patel']
-        for i in range(1, 6):
-            mother_name = random.choice(mother_names)
-            day = random.randint(1, 28)
-            month = random.randint(1, 12)
-            year = random.randint(1970, 1985)
-            dob = f"{day:02d}{month:02d}{year}"
-            
+        # Create 5 admins with fixed credentials
+        admin_data = [
+            ('ADM2024001', 'Dr. Admin', 'Usha', '25061975'),
+            ('ADM2024002', 'Prof. Admin', 'Lata', '12041978'),
+            ('ADM2024003', 'Mr. Admin', 'Sita', '15031980'),
+            ('ADM2024004', 'Ms. Admin', 'Maya', '08121982'),
+            ('ADM2024005', 'Dr. Head Admin', 'Radha', '22051975')
+        ]
+        
+        for prn, name, mother_name, dob in admin_data:
             admin = User(
-                prn_number=f'ADM2024{i:03d}',
-                username=f'admin{i}',
-                name=admin_names[i-1],
-                email=f'admin{i}@college.edu',
+                prn_number=prn,
+                username=prn.lower(),
+                name=name,
+                email=f'{prn.lower()}@college.edu',
                 mother_name=mother_name,
                 dob=dob,
-                phone=f'99999{i+10000:05d}',
-                address=f'Admin Block {i}, College Campus',
+                phone='9999999999',
+                address='Admin Office',
                 role='admin'
             )
             admin.set_password(mother_name + dob)
