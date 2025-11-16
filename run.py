@@ -11,10 +11,13 @@ def make_shell_context():
 
 # Initialize database tables and create demo data
 with app.app_context():
-    db.create_all()
-    
-    # Create demo data if database is empty
-    if User.query.count() == 0:
+    try:
+        db.create_all()
+        print(f"Database initialized. Current user count: {User.query.count()}")
+        
+        # Create demo data if database is empty
+        if User.query.count() == 0:
+            print("No users found. Creating demo data...")
         import random
         
         # Sample data for realistic names
@@ -29,7 +32,7 @@ with app.app_context():
         courses = ['BSC IT', 'BSC CS', 'BTech Computer Science', 'BTech Data Science']
         years = ['1st', '2nd', '3rd', '4th', '5th']
         
-        print('Creating 200 students...')
+            print('Creating 200 students...')
         # Create 200 students
         for i in range(1, 201):
             first_name = random.choice(first_names)
@@ -97,6 +100,15 @@ with app.app_context():
         
         db.session.commit()
         print('✅ Complete library system created with 200 students, 5 admins, and 10 books!')
+        print(f"Final user count: {User.query.count()}")
+        
+        # Print first admin credentials for debugging
+        first_admin = User.query.filter_by(role='admin').first()
+        if first_admin:
+            print(f"First admin: PRN={first_admin.prn_number}, Password={first_admin.mother_name + first_admin.dob}")
+    
+    except Exception as e:
+        print(f"Database initialization error: {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
