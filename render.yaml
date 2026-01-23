@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: library-management
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "python run.py"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
