@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.main import bp
-from app.models import User, Book, Loan, Notice, ExtensionRequest, LibrarySession
+from app.models import User, Book, Loan, Notice, ExtensionRequest, LibrarySession, BookReservation, PreBooking, VirtualBookPurchase
+from app.excel_export import auto_export_on_change
 from sqlalchemy import func, extract
+import os
 
 @bp.route('/')
 @bp.route('/index')
@@ -12,6 +14,164 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     return render_template('index.html', title='Library Management System')
+
+@bp.route('/about')
+def about():
+    return render_template('about.html', title='About LibraryPro')
+
+@bp.route('/privacy')
+def privacy():
+    return render_template('privacy.html', title='Privacy Policy')
+
+@bp.route('/terms')
+def terms():
+    return render_template('terms.html', title='Terms of Service')
+
+@bp.route('/contact')
+def contact():
+    return render_template('contact.html', title='Contact Us')
+
+@bp.route('/edit-book/<int:book_id>', methods=['GET', 'POST'])
+@login_required
+def edit_book(book_id):
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    book = Book.query.get_or_404(book_id)
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        author = request.form.get('author')
+        category = request.form.get('category')
+        course = request.form.get('course')
+        semester = request.form.get('semester')
+        isbn = request.form.get('isbn')
+        
+        if book.is_virtual:
+            # Virtual book update
+            virtual_price = float(request.form.get('virtual_price', 0.0))
+            download_price = float(request.form.get('download_price', 11.0))
+            
+            # Handle file upload
+            pdf_file = request.files.get('pdf_file')
+            if pdf_file and pdf_file.filename:
+                import os
+                from werkzeug.utils import secure_filename
+                
+                # Create uploads directory if it doesn't exist
+                upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'virtual_books')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                # Delete old file if exists
+                if book.pdf_file_path:
+                    old_file_path = os.path.join(os.getcwd(), 'app', book.pdf_file_path.lstrip('/'))
+                    if os.path.exists(old_file_path):
+                        os.remove(old_file_path)
+                
+                # Save new file
+                filename = secure_filename(pdf_file.filename)
+                file_path = os.path.join(upload_dir, filename)
+                pdf_file.save(file_path)
+                book.pdf_file_path = f'/static/virtual_books/{filename}'
+            
+            book.virtual_price = virtual_price
+            book.download_price = download_price
+        else:
+            # Physical book update
+            new_total = int(request.form.get('copies_total', book.copies_total))
+            new_available = int(request.form.get('copies_available', book.copies_available))
+            
+            # Calculate borrowed copies
+            borrowed_copies = book.copies_total - book.copies_available
+            
+            # Set available copies (ensure it doesn't exceed total or go below 0)
+            book.copies_available = min(new_available, new_total)
+            book.copies_available = max(0, book.copies_available)
+            book.copies_total = new_total
+        
+        if title and author:
+            # Update book details
+            book.title = title
+            book.author = author
+            book.category = category or 'General'
+            book.course = course
+            book.semester = semester
+            book.isbn = isbn
+            
+            db.session.commit()
+            
+            # Auto-export to Excel
+            auto_export_on_change()
+            
+            book_type = "Virtual" if book.is_virtual else "Physical"
+            flash(f'{book_type} book "{title}" updated successfully!', 'success')
+            return redirect(url_for('main.admin_dashboard'))
+        else:
+            flash('Please fill in all required fields.', 'danger')
+    
+    return render_template('main/edit_book.html', title='Edit Book', book=book)
+
+@bp.route('/export-excel')
+@login_required
+def export_excel():
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    from app.excel_export import create_excel_exports
+    
+    result = create_excel_exports()
+    
+    if result['success']:
+        flash(f'Excel export completed successfully! Files saved with timestamp {result["timestamp"]}', 'success')
+    else:
+        flash(f'Export failed: {result["error"]}', 'danger')
+    
+    return redirect(url_for('main.admin_dashboard'))
+
+@bp.route('/books-categories')
+def books_categories():
+    from sqlalchemy import func
+    
+    # Get filter parameters
+    search = request.args.get('search', '')
+    category_filter = request.args.get('category', '')
+    course_filter = request.args.get('course', '')
+    semester_filter = request.args.get('semester', '')
+    
+    # Base query
+    query = Book.query
+    
+    # Apply filters
+    if search:
+        query = query.filter(
+            (Book.title.contains(search)) | (Book.author.contains(search))
+        )
+    if category_filter:
+        query = query.filter(Book.category == category_filter)
+    if course_filter:
+        query = query.filter(Book.course == course_filter)
+    if semester_filter:
+        query = query.filter(Book.semester == semester_filter)
+    
+    books = query.all()
+    
+    # Get all categories for filter dropdown
+    categories = db.session.query(Book.category).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+    
+    # Get category statistics
+    category_stats = {}
+    for category in categories:
+        count = Book.query.filter_by(category=category).count()
+        category_stats[category] = count
+    
+    return render_template('books_categories.html', 
+                         title='Book Categories',
+                         books=books, 
+                         categories=categories,
+                         category_stats=category_stats)
 
 @bp.route('/emergency-setup')
 def emergency_setup():
@@ -58,8 +218,31 @@ def student_dashboard():
     from app.models import Notice
     from datetime import datetime, timedelta
     
-    books = Book.query.all()
+    # Get filter parameters
+    category_filter = request.args.get('category', '')
+    book_type = request.args.get('type', 'all')  # all, physical, virtual
+    
+    # Base query for books
+    query = Book.query
+    
+    # Apply book type filter
+    if book_type == 'physical':
+        query = query.filter(Book.is_virtual == False)
+    elif book_type == 'virtual':
+        query = query.filter(Book.is_virtual == True)
+    # 'all' shows both types
+    
+    # Apply category filter
+    if category_filter:
+        query = query.filter(Book.category == category_filter)
+    
+    books = query.all()
     my_loans = Loan.query.filter_by(user_id=current_user.id, return_date=None).all()
+    my_reservations = BookReservation.query.filter_by(user_id=current_user.id, status='active').all()
+    
+    # Get all categories for filter dropdown
+    categories = db.session.query(Book.category).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
     
     # Get recent notices for student
     all_notices = Notice.query.filter(
@@ -79,7 +262,9 @@ def student_dashboard():
     recent_notices = sorted(all_notices + student_specific, key=lambda x: x.created_date, reverse=True)[:5]
     
     return render_template('main/dashboard_student.html', title='Student Dashboard', 
-                         books=books, my_loans=my_loans, recent_notices=recent_notices)
+                         books=books, my_loans=my_loans, my_reservations=my_reservations, 
+                         recent_notices=recent_notices, categories=categories, 
+                         selected_category=category_filter, selected_type=book_type)
 
 @bp.route('/admin-dashboard')
 @login_required
@@ -100,16 +285,96 @@ def admin_dashboard():
 
 @bp.route('/search')
 def search():
-    query = request.args.get('q', '')
+    query = request.args.get('q', '').strip()
     if query:
-        books = Book.query.filter(
-            (Book.title.contains(query)) | (Book.author.contains(query))
+        # Fuzzy search with multiple strategies
+        from sqlalchemy import or_, func
+        
+        # Strategy 1: Exact matches (highest priority)
+        exact_books = Book.query.filter(
+            or_(
+                Book.title.ilike(f'%{query}%'),
+                Book.author.ilike(f'%{query}%')
+            )
         ).all()
+        
+        # Strategy 2: Word-by-word matching for partial matches
+        words = query.lower().split()
+        word_books = []
+        if len(words) > 1:
+            for book in Book.query.all():
+                title_lower = book.title.lower()
+                author_lower = book.author.lower()
+                
+                # Check if any word matches
+                title_matches = sum(1 for word in words if word in title_lower)
+                author_matches = sum(1 for word in words if word in author_lower)
+                
+                if title_matches > 0 or author_matches > 0:
+                    if book not in exact_books:
+                        word_books.append((book, title_matches + author_matches))
+            
+            # Sort by match score
+            word_books.sort(key=lambda x: x[1], reverse=True)
+            word_books = [book for book, score in word_books]
+        
+        # Strategy 3: Fuzzy matching for typos
+        fuzzy_books = []
+        if not exact_books and not word_books:
+            for book in Book.query.all():
+                title_similarity = calculate_similarity(query.lower(), book.title.lower())
+                author_similarity = calculate_similarity(query.lower(), book.author.lower())
+                
+                max_similarity = max(title_similarity, author_similarity)
+                if max_similarity > 0.6:  # 60% similarity threshold
+                    fuzzy_books.append((book, max_similarity))
+            
+            # Sort by similarity score
+            fuzzy_books.sort(key=lambda x: x[1], reverse=True)
+            fuzzy_books = [book for book, score in fuzzy_books[:10]]  # Top 10 matches
+        
+        # Combine results (exact first, then word matches, then fuzzy)
+        books = exact_books + word_books + fuzzy_books
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_books = []
+        for book in books:
+            if book.id not in seen:
+                seen.add(book.id)
+                unique_books.append(book)
+        
+        books = unique_books
     else:
         books = []
     
     return render_template('main/search_results.html', title='Search Results', 
                          books=books, query=query)
+
+def calculate_similarity(s1, s2):
+    """Calculate similarity between two strings using Levenshtein distance"""
+    if len(s1) < len(s2):
+        return calculate_similarity(s2, s1)
+    
+    if len(s2) == 0:
+        return 0.0
+    
+    # Levenshtein distance calculation
+    previous_row = list(range(len(s2) + 1))
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+    
+    # Convert distance to similarity (0-1 scale)
+    max_len = max(len(s1), len(s2))
+    distance = previous_row[-1]
+    similarity = 1 - (distance / max_len)
+    return max(0, similarity)
 
 @bp.route('/borrow/<int:book_id>')
 @login_required
@@ -145,6 +410,9 @@ def borrow_book(book_id):
     db.session.add(loan)
     db.session.commit()
     
+    # Auto-export to Excel
+    auto_export_on_change()
+    
     flash(f'Successfully borrowed "{book.title}". Due date: {loan.due_date.strftime("%Y-%m-%d")}', 'success')
     return redirect(url_for('main.dashboard'))
 
@@ -168,11 +436,15 @@ def return_book(loan_id):
     # Calculate fine if overdue
     fine = loan.fine_amount
     if fine > 0:
-        flash(f'Book returned successfully. Fine: ${fine:.2f} for late return.', 'warning')
+        flash(f'Book returned successfully. Fine: ₹{fine:.2f} for late return.', 'warning')
     else:
         flash('Book returned successfully!', 'success')
     
     db.session.commit()
+    
+    # Auto-export to Excel
+    auto_export_on_change()
+    
     return redirect(url_for('main.dashboard'))
 
 @bp.route('/add-book', methods=['GET', 'POST'])
@@ -185,14 +457,92 @@ def add_book():
     if request.method == 'POST':
         title = request.form.get('title')
         author = request.form.get('author')
-        copies = int(request.form.get('copies', 1))
+        category = request.form.get('category', 'General')
+        course = request.form.get('course')
+        semester = request.form.get('semester')
+        isbn = request.form.get('isbn')
+        is_virtual = request.form.get('is_virtual') == 'on'
+        
+        # New Book System
+        is_new_book = request.form.get('is_new_book') == 'on'
+        
+        # Pre-booking System
+        is_prebooking = request.form.get('is_prebooking') == 'on'
+        prebooking_slots = int(request.form.get('prebooking_slots', 0)) if is_prebooking else 0
+        prebooking_hours = int(request.form.get('prebooking_hours', 24)) if is_prebooking else 0
+        
+        if is_virtual:
+            # Virtual book
+            virtual_price = float(request.form.get('virtual_price', 0.0))
+            download_price = float(request.form.get('download_price', 11.0))
+            
+            # Handle file upload
+            pdf_file = request.files.get('pdf_file')
+            pdf_path = None
+            
+            if pdf_file and pdf_file.filename:
+                import os
+                from werkzeug.utils import secure_filename
+                
+                # Create uploads directory if it doesn't exist
+                upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'virtual_books')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                # Save file
+                filename = secure_filename(pdf_file.filename)
+                file_path = os.path.join(upload_dir, filename)
+                pdf_file.save(file_path)
+                pdf_path = f'/static/virtual_books/{filename}'
+            
+            book = Book(
+                title=title, 
+                author=author, 
+                category=category,
+                course=course,
+                semester=semester,
+                isbn=isbn,
+                is_virtual=True,
+                virtual_price=virtual_price,
+                download_price=download_price,
+                pdf_file_path=pdf_path,
+                copies_total=1, 
+                copies_available=1,
+                is_new_book=is_new_book,
+                is_prebooking=False
+            )
+        else:
+            # Physical book
+            copies = int(request.form.get('copies', 1))
+            
+            prebooking_starts = None
+            if is_prebooking:
+                prebooking_starts = datetime.utcnow() + timedelta(hours=prebooking_hours)
+            
+            book = Book(
+                title=title, 
+                author=author, 
+                category=category,
+                course=course,
+                semester=semester,
+                isbn=isbn,
+                is_virtual=False,
+                copies_total=copies, 
+                copies_available=0 if is_prebooking else copies,
+                is_new_book=is_new_book,
+                is_prebooking=is_prebooking,
+                prebooking_slots=prebooking_slots,
+                prebooking_starts=prebooking_starts
+            )
         
         if title and author:
-            book = Book(title=title, author=author, 
-                       copies_total=copies, copies_available=copies)
             db.session.add(book)
             db.session.commit()
-            flash(f'Book "{title}" added successfully!', 'success')
+            
+            # Auto-export to Excel
+            auto_export_on_change()
+            
+            book_type = "Virtual" if is_virtual else "Physical"
+            flash(f'{book_type} book "{title}" added successfully!', 'success')
             return redirect(url_for('main.admin_dashboard'))
         else:
             flash('Please fill in all required fields.', 'danger')
@@ -536,15 +886,37 @@ def delete_notice(notice_id):
     
     return redirect(url_for('main.view_notices'))
 
-@bp.route('/manage-students')
+@bp.route('/manage-categories')
 @login_required
-def manage_students():
+def manage_categories():
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
         return redirect(url_for('main.dashboard'))
     
-    students = User.query.filter_by(role='student').all()
-    return render_template('main/manage_students.html', title='Manage Students', students=students)
+    categories = db.session.query(Book.category).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+    return render_template('main/manage_categories.html', title='Manage Categories', categories=categories)
+
+@bp.route('/manage-reservations')
+@login_required
+def manage_reservations():
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    # Get all active reservations
+    reservations = BookReservation.query.filter_by(status='active').all()
+    
+    # Check for expired reservations (24 hours)
+    expired_reservations = []
+    for reservation in reservations:
+        if reservation.is_expired:
+            expired_reservations.append(reservation)
+    
+    return render_template('main/manage_reservations.html', 
+                         title='Manage Reservations', 
+                         reservations=reservations,
+                         expired_reservations=expired_reservations)
 
 @bp.route('/add-student', methods=['GET', 'POST'])
 @login_required
@@ -621,7 +993,53 @@ def edit_student(user_id):
     
     return render_template('main/edit_student.html', title='Edit Student', student=student)
 
-@bp.route('/delete-student/<int:user_id>')
+@bp.route('/expire-reservation/<int:reservation_id>')
+@login_required
+def expire_reservation(reservation_id):
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    reservation = BookReservation.query.get_or_404(reservation_id)
+    reservation.status = 'expired'
+    db.session.commit()
+    
+    flash(f'Reservation expired for {reservation.user.name}', 'info')
+    return redirect(url_for('main.manage_reservations'))
+
+@bp.route('/notify-reservation/<int:reservation_id>')
+@login_required
+def notify_reservation(reservation_id):
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    reservation = BookReservation.query.get_or_404(reservation_id)
+    
+    # Create notification
+    from app.models import Notice
+    notice = Notice(
+        title=f'Book Available: {reservation.book.title}',
+        message=f'Your reserved book "{reservation.book.title}" is now available. Please collect within 24 hours or reservation will expire.',
+        created_by=current_user.id,
+        recipient_type='specific',
+        recipient_ids=str(reservation.user_id)
+    )
+    db.session.add(notice)
+    db.session.commit()
+    
+    flash(f'Notification sent to {reservation.user.name}', 'success')
+    return redirect(url_for('main.manage_reservations'))
+
+@bp.route('/manage-students')
+@login_required
+def manage_students():
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    students = User.query.filter_by(role='student').all()
+    return render_template('main/manage_students.html', title='Manage Students', students=students)
 @login_required
 def delete_student(user_id):
     if current_user.role != 'admin':
@@ -991,3 +1409,113 @@ def test_login():
     
     result += '<p><a href="/auth/admin-login">Try Admin Login</a> | <a href="/auth/student-login">Try Student Login</a></p>'
     return result
+
+@bp.route('/reserve-book/<int:book_id>')
+@login_required
+def reserve_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    
+    if book.copies_available > 0:
+        flash('Book is available for immediate borrowing.', 'info')
+        return redirect(url_for('main.borrow_book', book_id=book_id))
+    
+    # Check if user already has a reservation for this book
+    existing_reservation = BookReservation.query.filter_by(
+        user_id=current_user.id, book_id=book_id, status='active'
+    ).first()
+    
+    if existing_reservation:
+        flash('You already have an active reservation for this book.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    # Create reservation
+    reservation = BookReservation(user_id=current_user.id, book_id=book_id)
+    db.session.add(reservation)
+    db.session.commit()
+    
+    flash(f'Book "{book.title}" reserved for 24 hours. You will be notified when available.', 'success')
+    return redirect(url_for('main.dashboard'))
+
+@bp.route('/cancel-reservation/<int:reservation_id>')
+@login_required
+def cancel_reservation(reservation_id):
+    reservation = BookReservation.query.get_or_404(reservation_id)
+    
+    if reservation.user_id != current_user.id and current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    reservation.status = 'cancelled'
+    db.session.commit()
+    
+    flash('Reservation cancelled successfully.', 'success')
+    return redirect(url_for('main.dashboard'))
+
+@bp.route('/virtual-books')
+def virtual_books():
+    virtual_books = Book.query.filter_by(is_virtual=True).all()
+    return render_template('main/virtual_books.html', title='Virtual Books', books=virtual_books)
+@login_required
+def prebook_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    
+    if not book.prebooking_available:
+        flash('Pre-booking not available for this book.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    # Check if user already pre-booked this book
+    from app.models import PreBooking
+    existing = PreBooking.query.filter_by(
+        user_id=current_user.id, book_id=book_id, status='active'
+    ).first()
+    
+    if existing:
+        flash('You have already pre-booked this book.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    # Create pre-booking
+    prebooking = PreBooking(user_id=current_user.id, book_id=book_id)
+    book.prebooking_taken += 1
+    
+    db.session.add(prebooking)
+    db.session.commit()
+    
+    flash(f'Successfully pre-booked "{book.title}". You will be notified when available!', 'success')
+    return redirect(url_for('main.dashboard'))
+def virtual_books():
+    virtual_books = Book.query.filter_by(is_virtual=True).all()
+    return render_template('main/virtual_books.html', title='Virtual Books', books=virtual_books)
+
+
+
+@bp.route('/read-virtual-book/<int:book_id>')
+@login_required
+def read_virtual_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    if not book.is_virtual or not book.pdf_file_path:
+        flash('Book not available for reading.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    pdf_path = os.path.join(current_app.root_path, book.pdf_file_path.lstrip('/'))
+    
+    if not os.path.exists(pdf_path):
+        flash('Book file not found. Please contact admin.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    return send_file(pdf_path, as_attachment=False)
+
+@bp.route('/download-virtual-book/<int:book_id>')
+@login_required
+def download_virtual_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    if not book.is_virtual or not book.pdf_file_path:
+        flash('Book not available for download.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    pdf_path = os.path.join(current_app.root_path, book.pdf_file_path.lstrip('/'))
+    
+    if not os.path.exists(pdf_path):
+        flash('Book file not found. Please contact admin.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    return send_file(pdf_path, as_attachment=True, download_name=f"{book.title}.pdf")

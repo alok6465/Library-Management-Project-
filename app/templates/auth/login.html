@@ -1,45 +1,205 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h2><i class="bi bi-box-arrow-in-right"></i> Sign In</h2>
-            <p>Welcome back to LibraryPro</p>
-            <div class="alert alert-info">
-                <strong>Login Instructions:</strong><br>
-                <strong>PRN Number:</strong> Your college PRN (e.g., PRN2024001)<br>
-                <strong>Password:</strong> MotherName+DOB (e.g., Sunita15081995)
+<div class="login-page">
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left Side - About Section -->
+            <div class="col-lg-7 about-section d-flex align-items-center">
+                <div class="about-content">
+                    <div class="hero-section text-center mb-5">
+                        <div class="logo-container mb-4">
+                            <i class="bi bi-book display-1 text-primary"></i>
+                        </div>
+                        <h1 class="display-4 fw-bold text-primary mb-3">LibraryPro</h1>
+                        <p class="lead text-muted">Professional Library Management System</p>
+                    </div>
+                    
+                    <div class="features-grid">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="bi bi-shield-check"></i>
+                                    </div>
+                                    <h5>Secure Authentication</h5>
+                                    <p>Role-based access control with encrypted passwords</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="bi bi-book-half"></i>
+                                    </div>
+                                    <h5>Book Management</h5>
+                                    <p>Complete catalog with search and availability tracking</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <h5>User Management</h5>
+                                    <p>Student and admin profiles with loan history</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="bi bi-phone"></i>
+                                    </div>
+                                    <h5>Responsive Design</h5>
+                                    <p>Mobile-first approach for all devices</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tech-stack mt-5">
+                        <h4 class="text-center mb-4">Technology Stack</h4>
+                        <div class="tech-badges">
+                            <span class="badge tech-badge">Flask</span>
+                            <span class="badge tech-badge">SQLAlchemy</span>
+                            <span class="badge tech-badge">Bootstrap 5</span>
+                            <span class="badge tech-badge">SQLite</span>
+                            <span class="badge tech-badge">Python</span>
+                            <span class="badge tech-badge">HTML5</span>
+                            <span class="badge tech-badge">CSS3</span>
+                            <span class="badge tech-badge">JavaScript</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-info mt-5">
+                        <div class="info-card">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="bi bi-person-badge"></i> Project Owner</h6>
+                                    <p class="fw-bold text-primary">Alok Tiwari</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="bi bi-code-slash"></i> Languages</h6>
+                                    <p>Python, HTML, CSS, JavaScript</p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6><i class="bi bi-info-circle"></i> About This System</h6>
+                                    <p class="small text-muted">A comprehensive library management solution designed for educational institutions. Features include user authentication, book catalog management, loan tracking, fine calculation, and administrative controls. Built with modern web technologies for optimal performance and user experience.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <form method="POST">
-            {{ form.hidden_tag() }}
             
-            <div class="mb-3">
-                {{ form.prn_number.label(class="form-label fw-semibold") }}
-                {{ form.prn_number(class="form-control", placeholder="e.g., PRN2024001") }}
-                {% for error in form.prn_number.errors %}
-                    <div class="text-danger small mt-1">{{ error }}</div>
-                {% endfor %}
+            <!-- Right Side - Login Form -->
+            <div class="col-lg-5 login-section d-flex align-items-center">
+                <div class="login-container w-100">
+                    <div class="login-card">
+                        <div class="login-header text-center mb-4">
+                            <h2 class="fw-bold"><i class="bi bi-box-arrow-in-right me-2"></i>Sign In</h2>
+                            <p class="text-muted">Welcome back to LibraryPro</p>
+                        </div>
+                        
+                        <div class="login-instructions mb-4">
+                            <div class="alert alert-info border-0">
+                                <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Login Instructions</h6>
+                                <div class="row">
+                                    <div class="col-12 mb-2">
+                                        <strong>PRN Number:</strong> Your college PRN<br>
+                                        <small class="text-muted">Students: PRN2024001-PRN2024200</small><br>
+                                        <small class="text-muted">Admins: ADM2024001-ADM2024005</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <strong>Password:</strong> MotherName+DOB<br>
+                                        <small class="text-muted">Example: Sunita15081995</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                {{ form.prn_number.label(class="form-label fw-semibold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                    {{ form.prn_number(class="form-control", placeholder="e.g., PRN2024001 or ADM2024001") }}
+                                </div>
+                                {% for error in form.prn_number.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.password.label(class="form-label fw-semibold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    {{ form.password(class="form-control", placeholder="e.g., Sunita15081995") }}
+                                </div>
+                                {% for error in form.password.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary btn-lg", onclick="showLoading(this)") }}
+                            </div>
+                        </form>
+                        
+                        <div class="login-footer text-center mt-4">
+                            <p class="text-muted small">Secure access to your library account</p>
+                            <div class="demo-accounts mt-3">
+                                <button class="btn btn-outline-primary btn-sm me-2" type="button" data-bs-toggle="collapse" data-bs-target="#demoAccounts">
+                                    <i class="bi bi-eye"></i> View Demo Accounts
+                                </button>
+                            </div>
+                            <div class="collapse mt-3" id="demoAccounts">
+                                <div class="card card-body bg-light">
+                                    <small>
+                                        <strong>Student:</strong> PRN2024001 / Password varies<br>
+                                        <strong>Admin:</strong> ADM2024001 / Password varies<br>
+                                        <em>Run the application to see generated passwords</em>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="mb-4">
-                {{ form.password.label(class="form-label fw-semibold") }}
-                {{ form.password(class="form-control", placeholder="e.g., Sunita15081995") }}
-                {% for error in form.password.errors %}
-                    <div class="text-danger small mt-1">{{ error }}</div>
-                {% endfor %}
-            </div>
-            
-            <div class="d-grid">
-                {{ form.submit(class="btn btn-primary btn-lg") }}
-            </div>
-        </form>
-        
-        <div class="text-center mt-4">
-            <p class="text-muted">Use your college PRN and password (MotherName+DOB)</p>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Enhanced login page interactions
+document.addEventListener('DOMContentLoaded', function() {
+    // Add floating animation to feature cards
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-float');
+    });
+    
+    // Add typing effect to the main title
+    const title = document.querySelector('.display-4');
+    if (title) {
+        const text = title.textContent;
+        title.textContent = '';
+        let i = 0;
+        const typeWriter = () => {
+            if (i < text.length) {
+                title.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 100);
+            }
+        };
+        setTimeout(typeWriter, 500);
+    }
+});
+</script>
 {% endblock %}

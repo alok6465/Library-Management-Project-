@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>Edit 
+                    {% if book.is_virtual %}
+                        <span class="badge bg-info">Virtual Book</span>
+                    {% else %}
+                        <span class="badge bg-primary">Physical Book</span>
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-semibold">Book Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="{{ book.title }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="author" class="form-label fw-semibold">Author *</label>
+                                <input type="text" class="form-control" id="author" name="author" 
+                                       value="{{ book.author }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="category" class="form-label fw-semibold">Category</label>
+                                <select class="form-select" id="category" name="category">
+                                    <option value="General" {% if book.category == 'General' %}selected{% endif %}>General</option>
+                                    <option value="Programming" {% if book.category == 'Programming' %}selected{% endif %}>Programming</option>
+                                    <option value="Web Development" {% if book.category == 'Web Development' %}selected{% endif %}>Web Development</option>
+                                    <option value="Data Science" {% if book.category == 'Data Science' %}selected{% endif %}>Data Science</option>
+                                    <option value="Mathematics" {% if book.category == 'Mathematics' %}selected{% endif %}>Mathematics</option>
+                                    <option value="Science" {% if book.category == 'Science' %}selected{% endif %}>Science</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="course" class="form-label fw-semibold">Course</label>
+                                <input type="text" class="form-control" id="course" name="course" 
+                                       value="{{ book.course or '' }}" placeholder="BSC IT, BTech CS, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="semester" class="form-label fw-semibold">Semester</label>
+                                <input type="text" class="form-control" id="semester" name="semester" 
+                                       value="{{ book.semester or '' }}" placeholder="Sem 1, Sem 2, etc.">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="isbn" class="form-label fw-semibold">ISBN</label>
+                        <input type="text" class="form-control" id="isbn" name="isbn" 
+                               value="{{ book.isbn or '' }}" placeholder="978-0123456789">
+                    </div>
+                    
+                    {% if book.is_virtual %}
+                        <!-- Virtual Book Fields -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="virtual_price" class="form-label fw-semibold">Reading Price (₹)</label>
+                                    <input type="number" class="form-control" id="virtual_price" name="virtual_price" 
+                                           value="{{ book.virtual_price or 0 }}" step="0.01" min="0">
+                                    <small class="text-muted">Price to read online (usually free)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="download_price" class="form-label fw-semibold">Download Price (₹)</label>
+                                    <input type="number" class="form-control" id="download_price" name="download_price" 
+                                           value="{{ book.download_price or 11 }}" step="0.01" min="0">
+                                    <small class="text-muted">Price to download PDF</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="pdf_file" class="form-label fw-semibold">Update PDF/DOCX File</label>
+                            <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept=".pdf,.docx,.doc">
+                            <small class="text-muted">
+                                Current file: 
+                                {% if book.pdf_file_path %}
+                                    <a href="{{ book.pdf_file_path }}" target="_blank">{{ book.pdf_file_path.split('/')[-1] }}</a>
+                                {% else %}
+                                    No file uploaded
+                                {% endif %}
+                            </small>
+                        </div>
+                    {% else %}
+                        <!-- Physical Book Fields -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="copies_total" class="form-label fw-semibold">Total Copies *</label>
+                                    <input type="number" class="form-control" id="copies_total" name="copies_total" 
+                                           value="{{ book.copies_total }}" min="1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="copies_available" class="form-label fw-semibold">Available Copies *</label>
+                                    <input type="number" class="form-control" id="copies_available" name="copies_available" 
+                                           value="{{ book.copies_available }}" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle me-2"></i>Book Availability Status:</h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="bg-primary text-white p-2 rounded">
+                                        <strong>{{ book.copies_total }}</strong><br>
+                                        <small>Total</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="bg-success text-white p-2 rounded">
+                                        <strong>{{ book.copies_available }}</strong><br>
+                                        <small>Available</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="bg-warning text-white p-2 rounded">
+                                        <strong>{{ book.copies_total - book.copies_available }}</strong><br>
+                                        <small>Borrowed</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Update Book
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -6,6 +6,13 @@
     {% if query %}
         <p class="text-muted">Results for: "<strong>{{ query }}</strong>"</p>
         <p class="text-muted">Found {{ books|length }} book(s)</p>
+        {% if books|length > 0 and query|length > 3 %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-lightbulb"></i> <strong>Smart Search:</strong> 
+                Results include exact matches, partial matches, and similar spellings.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
     {% else %}
         <p class="text-muted">Enter a search term to find books</p>
     {% endif %}
@@ -20,16 +27,19 @@
                 <h6 class="book-title">{{ book.title }}</h6>
                 <p class="book-author">by {{ book.author }}</p>
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="availability-badge badge {% if book.copies_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                        {{ book.copies_available }}/{{ book.copies_total }} available
+                    <span class="availability-badge badge bg-{{ book.availability_status.color }}">
+                        {{ book.availability_status.text }} ({{ book.copies_available }}/{{ book.copies_total }})
                     </span>
                     {% if current_user.is_authenticated and book.copies_available > 0 %}
                         <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" 
                            class="btn btn-sm btn-primary">Borrow</a>
+                    {% elif current_user.is_authenticated and book.can_be_reserved %}
+                        <a href="{{ url_for('main.reserve_book', book_id=book.id) }}" 
+                           class="btn btn-sm btn-warning">Reserve</a>
                     {% elif current_user.is_authenticated %}
                         <button class="btn btn-sm btn-secondary" disabled>Unavailable</button>
                     {% else %}
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary">Login to Borrow</a>
+                        <a href="{{ url_for('auth.student_login') }}" class="btn btn-sm btn-outline-primary">Login to Borrow</a>
                     {% endif %}
                 </div>
             </div>
@@ -40,8 +50,16 @@
 {% elif query %}
 <div class="text-center py-5">
     <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
-    <h4 class="mt-3 text-muted">No books found</h4>
-    <p class="text-muted">Try searching with different keywords</p>
+    <h4 class="mt-3 text-muted">No books found for "{{ query }}"</h4>
+    <div class="mt-4">
+        <p class="text-muted">Search suggestions:</p>
+        <ul class="list-unstyled text-muted">
+            <li>• Check your spelling</li>
+            <li>• Try different keywords</li>
+            <li>• Use author's name instead of title</li>
+            <li>• Try shorter search terms</li>
+        </ul>
+    </div>
 </div>
 {% endif %}
 {% endblock %}

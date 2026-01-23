@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-6 fw-bold text-primary">
+                    <i class="bi bi-collection me-2"></i>Book Categories
+                </h1>
+                <div class="d-flex gap-2">
+                    <a href="https://www.mu.ac.in/" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-globe me-1"></i>Mumbai University
+                    </a>
+                    <a href="https://sncollegemumbai.edu.in/" target="_blank" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-building me-1"></i>Shankar Narayan College
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Search and Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search Books</label>
+                            <input type="text" name="search" class="form-control" placeholder="Search by title or author" value="{{ request.args.get('search', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Course</label>
+                            <select name="course" class="form-select">
+                                <option value="">All Courses</option>
+                                <option value="BSC CS" {% if request.args.get('course') == 'BSC CS' %}selected{% endif %}>BSC CS</option>
+                                <option value="BSC IT" {% if request.args.get('course') == 'BSC IT' %}selected{% endif %}>BSC IT</option>
+                                <option value="All Courses" {% if request.args.get('course') == 'All Courses' %}selected{% endif %}>Reference</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Semester</label>
+                            <select name="semester" class="form-select">
+                                <option value="">All Semesters</option>
+                                <option value="Sem 1" {% if request.args.get('semester') == 'Sem 1' %}selected{% endif %}>Semester 1</option>
+                                <option value="Sem 2" {% if request.args.get('semester') == 'Sem 2' %}selected{% endif %}>Semester 2</option>
+                                <option value="Sem 3" {% if request.args.get('semester') == 'Sem 3' %}selected{% endif %}>Semester 3</option>
+                                <option value="Sem 4" {% if request.args.get('semester') == 'Sem 4' %}selected{% endif %}>Semester 4</option>
+                                <option value="Sem 5" {% if request.args.get('semester') == 'Sem 5' %}selected{% endif %}>Semester 5</option>
+                                <option value="Sem 6" {% if request.args.get('semester') == 'Sem 6' %}selected{% endif %}>Semester 6</option>
+                                <option value="Reference" {% if request.args.get('semester') == 'Reference' %}selected{% endif %}>Reference</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Category Statistics -->
+            <div class="row g-3 mb-4">
+                {% for category, count in category_stats.items() %}
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-book display-6 text-primary mb-2"></i>
+                            <h5 class="card-title">{{ category }}</h5>
+                            <p class="card-text text-muted">{{ count }} Books</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Books Grid -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Books ({{ books|length }} found)</h4>
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="view" id="grid-view" checked>
+                            <label class="btn btn-outline-primary" for="grid-view">
+                                <i class="bi bi-grid-3x3-gap"></i> Grid
+                            </label>
+                            <input type="radio" class="btn-check" name="view" id="list-view">
+                            <label class="btn btn-outline-primary" for="list-view">
+                                <i class="bi bi-list"></i> List
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Grid View -->
+                    <div id="books-grid" class="row g-4">
+                        {% for book in books %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card book-card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-primary">{{ book.category }}</span>
+                                    <small class="text-muted">{{ book.course }} - {{ book.semester }}</small>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title book-title">{{ book.title }}</h6>
+                                    <p class="card-text book-author">by {{ book.author }}</p>
+                                    {% if book.isbn %}
+                                    <p class="small text-muted mb-2">ISBN: {{ book.isbn }}</p>
+                                    {% endif %}
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge availability-badge {% if book.copies_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ book.copies_available }}/{{ book.copies_total }} Available
+                                        </span>
+                                        {% if current_user.is_authenticated and book.copies_available > 0 %}
+                                        <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Borrow
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- List View -->
+                    <div id="books-list" class="d-none">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Category</th>
+                                        <th>Course/Semester</th>
+                                        <th>Availability</th>
+                                        {% if current_user.is_authenticated %}
+                                        <th>Action</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for book in books %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ book.title }}</strong>
+                                            {% if book.isbn %}
+                                            <br><small class="text-muted">ISBN: {{ book.isbn }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ book.author }}</td>
+                                        <td><span class="badge bg-primary">{{ book.category }}</span></td>
+                                        <td>{{ book.course }}<br><small>{{ book.semester }}</small></td>
+                                        <td>
+                                            <span class="badge {% if book.copies_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ book.copies_available }}/{{ book.copies_total }}
+                                            </span>
+                                        </td>
+                                        {% if current_user.is_authenticated %}
+                                        <td>
+                                            {% if book.copies_available > 0 %}
+                                            <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-plus-circle"></i> Borrow
+                                            </a>
+                                            {% else %}
+                                            <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if not books %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-search display-1 text-muted"></i>
+                        <h4 class="mt-3">No books found</h4>
+                        <p class="text-muted">Try adjusting your search criteria</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gridView = document.getElementById('grid-view');
+    const listView = document.getElementById('list-view');
+    const booksGrid = document.getElementById('books-grid');
+    const booksList = document.getElementById('books-list');
+    
+    gridView.addEventListener('change', function() {
+        if (this.checked) {
+            booksGrid.classList.remove('d-none');
+            booksList.classList.add('d-none');
+        }
+    });
+    
+    listView.addEventListener('change', function() {
+        if (this.checked) {
+            booksGrid.classList.add('d-none');
+            booksList.classList.remove('d-none');
+        }
+    });
+    
+    // Auto-scroll to results after search
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('search') || urlParams.get('category') || urlParams.get('course') || urlParams.get('semester')) {
+        setTimeout(function() {
+            const resultsSection = document.querySelector('.row .col-12 h4');
+            if (resultsSection) {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    }
+    
+    // Add scroll on form submit
+    const searchForm = document.querySelector('form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function() {
+            setTimeout(function() {
+                const resultsSection = document.querySelector('.row .col-12 h4');
+                if (resultsSection) {
+                    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 200);
+        });
+    }
+});
+</script>
+{% endblock %}

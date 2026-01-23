@@ -100,27 +100,149 @@
 </div>
 {% endif %}
 
-<div class="card">
+{% if my_reservations %}
+<div class="card mb-4">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-collection"></i> Available Books</h5>
+        <h5 class="mb-0"><i class="bi bi-clock"></i> My Book Reservations</h5>
     </div>
     <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Author</th>
+                        <th>Reserved At</th>
+                        <th>Expires At</th>
+                        <th>Time Left</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in my_reservations %}
+                    <tr>
+                        <td class="book-title">{{ reservation.book.title }}</td>
+                        <td>{{ reservation.book.author }}</td>
+                        <td>{{ reservation.reserved_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ reservation.expires_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if reservation.is_expired %}
+                                <span class="badge bg-danger">Expired</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ "%.1f"|format(reservation.hours_remaining) }}h left</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reservation.book.copies_available > 0 %}
+                                <a href="{{ url_for('main.borrow_book', book_id=reservation.book.id) }}" 
+                                   class="btn btn-sm btn-success me-1">Borrow Now</a>
+                            {% endif %}
+                            <a href="{{ url_for('main.cancel_reservation', reservation_id=reservation.id) }}" 
+                               class="btn btn-sm btn-outline-danger">Cancel</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-collection"></i> Books Library</h5>
+            <div class="d-flex gap-2">
+                <!-- Book Type Filter -->
+                <select class="form-select form-select-sm" id="typeFilter" onchange="filterBooks()">
+                    <option value="all" {% if selected_type == 'all' %}selected{% endif %}>All Books</option>
+                    <option value="physical" {% if selected_type == 'physical' %}selected{% endif %}>Physical Books</option>
+                    <option value="virtual" {% if selected_type == 'virtual' %}selected{% endif %}>Virtual Books</option>
+                </select>
+                
+                <!-- Category Filter -->
+                <select class="form-select form-select-sm" id="categoryFilter" onchange="filterBooks()">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
+                            {{ category }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if books %}
         <div class="row">
             {% for book in books %}
             <div class="col-md-4 mb-4">
-                <div class="card book-card">
+                <div class="card book-card {% if book.is_virtual %}border-info{% endif %}">
                     <div class="card-body">
                         <h6 class="book-title">{{ book.title }}</h6>
                         <p class="book-author">by {{ book.author }}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="availability-badge badge {% if book.copies_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                                {{ book.copies_available }}/{{ book.copies_total }} available
+                        <div class="mb-2">
+                            {% if book.is_still_new %}
+                                <span class="badge bg-success me-1">🆕 NEW</span>
+                            {% endif %}
+                            {% if book.is_prebooking %}
+                                <span class="badge bg-warning me-1">📅 Pre-Book</span>
+                            {% endif %}
+                            <span class="availability-badge badge bg-{{ book.availability_status.color }}">
+                                {{ book.availability_status.text }}
+                                {% if not book.is_virtual %}
+                                    ({{ book.copies_available }}/{{ book.copies_total }})
+                                {% endif %}
                             </span>
-                            {% if book.copies_available > 0 %}
-                                <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" 
-                                   class="btn btn-sm btn-primary">Borrow</a>
+                            {% if book.category %}
+                                <span class="badge bg-secondary ms-1">{{ book.category }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-1">
+                            {% if book.is_virtual %}
+                                <!-- Virtual Book Actions -->
+                                {% set read_purchase = current_user.virtual_purchases|selectattr('book_id', 'equalto', book.id)|selectattr('purchase_type', 'equalto', 'read')|first %}
+                                {% set download_purchase = current_user.virtual_purchases|selectattr('book_id', 'equalto', book.id)|selectattr('purchase_type', 'equalto', 'download')|first %}
+                                
+                                {% if read_purchase %}
+                                    <a href="{{ url_for('main.read_virtual_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-book-open"></i> Read Now
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('main.read_virtual_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-eye"></i> Read Free
+                                    </a>
+                                {% endif %}
+                                
+                                {% if download_purchase %}
+                                    <a href="{{ url_for('main.download_virtual_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('main.download_virtual_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Download Free
+                                    </a>
+                                {% endif %}
                             {% else %}
-                                <button class="btn btn-sm btn-secondary" disabled>Unavailable</button>
+                                <!-- Physical Book Actions -->
+                                {% if book.prebooking_available %}
+                                    <a href="{{ url_for('main.prebook_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-warning">
+                                        📅 Pre-Book ({{ book.prebooking_slots_left }}/{{ book.prebooking_slots }} left)
+                                    </a>
+                                {% elif book.copies_available > 0 %}
+                                    <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-primary">Borrow</a>
+                                {% else %}
+                                    <a href="{{ url_for('main.reserve_book', book_id=book.id) }}" 
+                                       class="btn btn-sm btn-warning">Reserve (24h)</a>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -128,6 +250,13 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 text-muted">No books found</h5>
+            <p class="text-muted">Try selecting different filters</p>
+        </div>
+        {% endif %}
     </div>
 </div>
     </div>
@@ -137,4 +266,26 @@
 </div>
 
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterBooks() {
+    const typeFilter = document.getElementById('typeFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    
+    // Build URL with filters
+    const params = new URLSearchParams();
+    if (typeFilter !== 'all') {
+        params.append('type', typeFilter);
+    }
+    if (categoryFilter) {
+        params.append('category', categoryFilter);
+    }
+    
+    // Redirect with filters
+    const url = '{{ url_for("main.student_dashboard") }}' + (params.toString() ? '?' + params.toString() : '');
+    window.location.href = url;
+}
+</script>
 {% endblock %}

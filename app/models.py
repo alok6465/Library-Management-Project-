@@ -47,12 +47,70 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     author = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50), nullable=False, default='General')
+    semester = db.Column(db.String(20), nullable=True)
+    course = db.Column(db.String(50), nullable=True)
+    isbn = db.Column(db.String(20), nullable=True)
     copies_total = db.Column(db.Integer, nullable=False, default=1)
     copies_available = db.Column(db.Integer, nullable=False, default=1)
+    
+    # New Book System
+    is_new_book = db.Column(db.Boolean, nullable=False, default=True)
+    new_book_expires = db.Column(db.DateTime, nullable=True)
+    
+    # Pre-booking System
+    is_prebooking = db.Column(db.Boolean, nullable=False, default=False)
+    prebooking_starts = db.Column(db.DateTime, nullable=True)
+    prebooking_slots = db.Column(db.Integer, nullable=False, default=0)
+    prebooking_taken = db.Column(db.Integer, nullable=False, default=0)
+    
+    # Virtual Book Fields
+    is_virtual = db.Column(db.Boolean, nullable=False, default=False)
+    pdf_file_path = db.Column(db.String(500), nullable=True)
+    virtual_price = db.Column(db.Float, nullable=True, default=0.0)  # Free to read
+    download_price = db.Column(db.Float, nullable=True, default=11.0)  # ₹11 to download
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
     loans = db.relationship('Loan', backref='book', lazy='dynamic')
+    
+    def __init__(self, **kwargs):
+        super(Book, self).__init__(**kwargs)
+        if self.is_new_book and not self.new_book_expires:
+            self.new_book_expires = datetime.utcnow() + timedelta(days=60)  # 2 months
+    
+    @property
+    def is_still_new(self):
+        return self.is_new_book and self.new_book_expires and datetime.utcnow() < self.new_book_expires
+    
+    @property
+    def prebooking_available(self):
+        return (self.is_prebooking and 
+                self.prebooking_starts and 
+                datetime.utcnow() >= self.prebooking_starts and
+                self.prebooking_taken < self.prebooking_slots)
+    
+    @property
+    def prebooking_slots_left(self):
+        return max(0, self.prebooking_slots - self.prebooking_taken)
     
     def __repr__(self):
         return f'<Book {self.title}>'
+    
+    @property
+    def availability_status(self):
+        """Return color-coded availability status"""
+        if self.is_virtual:
+            return {'status': 'virtual', 'color': 'info', 'text': 'Virtual Book'}
+        elif self.copies_available > 0:
+            return {'status': 'available', 'color': 'success', 'text': 'Available'}
+        else:
+            return {'status': 'unavailable', 'color': 'danger', 'text': 'Unavailable'}
+    
+    @property
+    def can_be_reserved(self):
+        """Check if book can be reserved"""
+        return not self.is_virtual and self.copies_available == 0 and self.copies_total > 0
 
 class Loan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,10 +139,10 @@ class Loan(db.Model):
     def fine_amount(self):
         if self.return_date and self.return_date > self.due_date:
             days_late = (self.return_date - self.due_date).days
-            return days_late * 1.0  # $1 per day fine
+            return days_late * 5.0  # ₹5 per day fine
         elif self.is_overdue:
             days_late = (datetime.utcnow() - self.due_date).days
-            return days_late * 1.0
+            return days_late * 5.0
         return 0.0
     
     def __repr__(self):
@@ -164,3 +222,71 @@ class LibrarySession(db.Model):
     
     def __repr__(self):
         return f'<LibrarySession {self.id}: {self.user.name}>'
+
+class BookReservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    reserved_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='active')
+    
+    user = db.relationship('User', backref='reservations')
+    book = db.relationship('Book', backref='reservations')
+    
+    def __init__(self, **kwargs):
+        super(BookReservation, self).__init__(**kwargs)
+        if not self.expires_at:
+            self.expires_at = datetime.utcnow() + timedelta(hours=24)
+    
+    @property
+    def is_expired(self):
+        return datetime.utcnow() > self.expires_at and self.status == 'active'
+    
+    @property
+    def hours_remaining(self):
+        if self.status == 'active':
+            remaining = self.expires_at - datetime.utcnow()
+            return max(0, remaining.total_seconds() / 3600)
+        return 0
+    
+class PreBooking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    booked_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.String(20), nullable=False, default='active')  # active, fulfilled, cancelled
+    
+    user = db.relationship('User', backref='prebookings')
+    book = db.relationship('Book', backref='prebookings')
+    
+    def __repr__(self):
+        return f'<PreBooking {self.id}: {self.user.name} - {self.book.title}>'
+
+class VirtualBookPurchase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    purchase_type = db.Column(db.String(20), nullable=False)  # 'read' or 'download'
+    amount_paid = db.Column(db.Float, nullable=False, default=0.0)
+    purchase_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    payment_status = db.Column(db.String(20), nullable=False, default='completed')
+    
+    user = db.relationship('User', backref='virtual_purchases')
+    book = db.relationship('Book', backref='purchases')
+    
+    def __repr__(self):
+        return f'<VirtualBookPurchase {self.id}: {self.user.name} - {self.book.title}>'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    purchase_type = db.Column(db.String(20), nullable=False)  # 'read' or 'download'
+    amount_paid = db.Column(db.Float, nullable=False, default=0.0)
+    purchase_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    payment_status = db.Column(db.String(20), nullable=False, default='completed')
+    
+    user = db.relationship('User', backref='virtual_purchases')
+    book = db.relationship('Book', backref='purchases')
+    
+    def __repr__(self):
+        return f'<VirtualBookPurchase {self.id}: {self.user.name} - {self.book.title}>'

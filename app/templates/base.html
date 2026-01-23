@@ -61,6 +61,18 @@
                 </ul>
                 {% else %}
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.virtual_books') }}">Virtual Books</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.books_categories') }}">Books</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.contact') }}">Contact</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Login
@@ -154,8 +166,38 @@
 
     <!-- Footer -->
     <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container text-center">
-            <p>&copy; 2024 LibraryPro. Professional Library Management System.</p>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">LibraryPro</h5>
+                    <p class="mb-2">Professional Library Management System</p>
+                    <p class="mb-0">Developed by <strong>Alok Tiwari</strong></p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('main.books_categories') }}" class="text-light text-decoration-none">Books</a></li>
+                    <li><a href="{{ url_for('main.virtual_books') }}" class="text-light text-decoration-none">Virtual Books</a></li>
+                        <li><a href="{{ url_for('main.about') }}" class="text-light text-decoration-none">About</a></li>
+                        <li><a href="{{ url_for('main.contact') }}" class="text-light text-decoration-none">Contact</a></li>
+                        {% if not current_user.is_authenticated %}
+                        <li><a href="{{ url_for('auth.student_login') }}" class="text-light text-decoration-none">Student Login</a></li>
+                        <li><a href="{{ url_for('auth.admin_login') }}" class="text-light text-decoration-none">Admin Login</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('main.privacy') }}" class="text-light text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('main.terms') }}" class="text-light text-decoration-none">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 LibraryPro. All rights reserved. Built with Flask & Bootstrap.</p>
+            </div>
         </div>
     </footer>
 
@@ -182,14 +224,27 @@
             }
         }
         
-        // Auto-hide flash messages after 5 seconds
+        // Auto-hide flash messages after 2 minutes (120 seconds)
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
+                // Add manual close button if not present
+                if (!alert.querySelector('.btn-close')) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.type = 'button';
+                    closeBtn.className = 'btn-close';
+                    closeBtn.setAttribute('data-bs-dismiss', 'alert');
+                    closeBtn.setAttribute('aria-label', 'Close');
+                    alert.appendChild(closeBtn);
+                }
+                
+                // Auto-hide after 2 minutes
                 setTimeout(function() {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }, 5000);
+                    if (alert && alert.parentNode) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 120000); // 2 minutes = 120,000 milliseconds
             });
         });
         

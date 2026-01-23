@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">About LibraryPro</h1>
+                <p class="lead text-muted">Professional Library Management System</p>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body p-5">
+                    <h2 class="h3 mb-4">Our Mission</h2>
+                    <p class="mb-4">LibraryPro is designed to revolutionize library management for educational institutions. We provide a comprehensive, user-friendly platform that streamlines book management, user authentication, and loan tracking processes.</p>
+                    
+                    <h2 class="h3 mb-4">Key Features</h2>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="bi bi-shield-check text-primary me-3 fs-4"></i>
+                                <div>
+                                    <h5>Secure Authentication</h5>
+                                    <p class="text-muted mb-0">Role-based access control with encrypted passwords and session management.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="bi bi-book-half text-primary me-3 fs-4"></i>
+                                <div>
+                                    <h5>Book Management</h5>
+                                    <p class="text-muted mb-0">Complete catalog management with search functionality and availability tracking.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="bi bi-people text-primary me-3 fs-4"></i>
+                                <div>
+                                    <h5>User Management</h5>
+                                    <p class="text-muted mb-0">Comprehensive student and admin profiles with detailed loan history.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="bi bi-graph-up text-primary me-3 fs-4"></i>
+                                <div>
+                                    <h5>Analytics & Reports</h5>
+                                    <p class="text-muted mb-0">Detailed statistics and reporting for better library management.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="h3 mb-4">Technology Stack</h2>
+                    <p class="mb-3">Built with modern, reliable technologies:</p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge bg-primary">Flask</span>
+                        <span class="badge bg-primary">SQLAlchemy</span>
+                        <span class="badge bg-primary">Bootstrap 5</span>
+                        <span class="badge bg-primary">SQLite</span>
+                        <span class="badge bg-primary">Python</span>
+                        <span class="badge bg-primary">HTML5</span>
+                        <span class="badge bg-primary">CSS3</span>
+                        <span class="badge bg-primary">JavaScript</span>
+                    </div>
+                    
+                    <h2 class="h3 mb-4">Educational Partnership</h2>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-mortarboard display-4 text-primary mb-3"></i>
+                                    <h5>Mumbai University</h5>
+                                    <p class="text-muted mb-3">Official curriculum-based textbooks for BSC CS and BSC IT programs</p>
+                                    <a href="https://www.mu.ac.in/" target="_blank" class="btn btn-outline-primary">
+                                        <i class="bi bi-globe me-1"></i>Visit Website
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-building display-4 text-success mb-3"></i>
+                                    <h5>Shankar Narayan College</h5>
+                                    <p class="text-muted mb-3">Affiliated college providing quality education in Computer Science and IT</p>
+                                    <a href="https://sncollegemumbai.edu.in/" target="_blank" class="btn btn-outline-success">
+                                        <i class="bi bi-building me-1"></i>Visit College
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="h3 mb-4">Developer Information</h2>
+                    <div class="bg-light p-4 rounded">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-person-badge text-primary me-2"></i>Project Owner</h5>
+                                <p class="fw-bold text-primary mb-3">Alok Tiwari</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-code-slash text-primary me-2"></i>Programming Languages</h5>
+                                <p class="mb-3">Python, HTML, CSS, JavaScript</p>
+                            </div>
+                        </div>
+                        <h5><i class="bi bi-info-circle text-primary me-2"></i>Project Description</h5>
+                        <p class="mb-0">A comprehensive library management solution designed specifically for educational institutions. Features Mumbai University BSC CS/IT curriculum textbooks, secure user authentication, complete book catalog management with categories, loan tracking with automatic fine calculation, and administrative controls. Built with modern web technologies to ensure optimal performance, security, and user experience across all devices.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

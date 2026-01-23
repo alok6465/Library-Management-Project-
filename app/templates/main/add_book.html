@@ -2,29 +2,170 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-6">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Book</h4>
             </div>
             <div class="card-body p-4">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="title" class="form-label fw-semibold">Book Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="author" class="form-label fw-semibold">Author</label>
-                        <input type="text" class="form-control" id="author" name="author" required>
-                    </div>
-                    
+                <form method="POST" enctype="multipart/form-data">
+                    <!-- Book Type Selection -->
                     <div class="mb-4">
-                        <label for="copies" class="form-label fw-semibold">Number of Copies</label>
-                        <input type="number" class="form-control" id="copies" name="copies" min="1" value="1" required>
+                        <label class="form-label fw-semibold">Book Type</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="book_type" id="physical" value="physical" checked onchange="toggleBookType()">
+                            <label class="form-check-label" for="physical">
+                                <i class="bi bi-book"></i> Physical Book (Library Copy)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="book_type" id="virtual" value="virtual" onchange="toggleBookType()">
+                            <label class="form-check-label" for="virtual">
+                                <i class="bi bi-cloud-download"></i> Virtual Book (Digital PDF)
+                            </label>
+                        </div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <!-- Basic Book Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-semibold">Book Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="author" class="form-label fw-semibold">Author *</label>
+                                <input type="text" class="form-control" id="author" name="author" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="category" class="form-label fw-semibold">Category</label>
+                                <select class="form-select" id="category" name="category">
+                                    <option value="General">General</option>
+                                    <option value="Programming">Programming</option>
+                                    <option value="Web Development">Web Development</option>
+                                    <option value="Data Science">Data Science</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Literature">Literature</option>
+                                    <option value="History">History</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="course" class="form-label fw-semibold">Course</label>
+                                <input type="text" class="form-control" id="course" name="course" placeholder="BSC IT, BTech CS, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="semester" class="form-label fw-semibold">Semester</label>
+                                <input type="text" class="form-control" id="semester" name="semester" placeholder="Sem 1, Sem 2, etc.">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="isbn" class="form-label fw-semibold">ISBN</label>
+                        <input type="text" class="form-control" id="isbn" name="isbn" placeholder="978-0123456789">
+                    </div>
+                    
+                    <!-- Physical Book Fields -->
+                    <div id="physicalFields">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="copies" class="form-label fw-semibold">Number of Copies</label>
+                                    <input type="number" class="form-control" id="copies" name="copies" min="1" value="1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_new_book" name="is_new_book" checked>
+                                    <label class="form-check-label" for="is_new_book">
+                                        🆕 Mark as NEW (2 months)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pre-booking System -->
+                        <div class="card border-warning mb-3">
+                            <div class="card-header bg-warning bg-opacity-10">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_prebooking" name="is_prebooking" onchange="togglePrebooking()">
+                                    <label class="form-check-label fw-semibold" for="is_prebooking">
+                                        📅 Enable Pre-booking System
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="card-body" id="prebookingFields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="prebooking_slots" class="form-label">Pre-booking Slots</label>
+                                            <input type="number" class="form-control" id="prebooking_slots" name="prebooking_slots" min="1" value="20">
+                                            <small class="text-muted">How many students can pre-book (e.g., 20 for 20 books ordered)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="prebooking_hours" class="form-label">Start Pre-booking (Hours)</label>
+                                            <input type="number" class="form-control" id="prebooking_hours" name="prebooking_hours" min="1" value="24">
+                                            <small class="text-muted">Hours before book arrival (24 = start 24hrs early)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mb-0">
+                                    <small><strong>How it works:</strong> Students can pre-book this book starting 24 hours before it arrives. Only the specified number of slots are available.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Virtual Book Fields -->
+                    <div id="virtualFields" style="display: none;">
+                        <input type="hidden" name="is_virtual" id="is_virtual">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="virtual_price" class="form-label fw-semibold">Reading Price (₹)</label>
+                                    <input type="number" class="form-control" id="virtual_price" name="virtual_price" value="0" step="0.01" min="0">
+                                    <small class="text-muted">Price to read online (usually free)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="download_price" class="form-label fw-semibold">Download Price (₹)</label>
+                                    <input type="number" class="form-control" id="download_price" name="download_price" value="11" step="0.01" min="0">
+                                    <small class="text-muted">Price to download PDF</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="pdf_file" class="form-label fw-semibold">Upload PDF/DOCX File</label>
+                            <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept=".pdf,.docx,.doc">
+                            <small class="text-muted">Supported formats: PDF, DOCX, DOC (Max 50MB)</small>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_new_book_virtual" name="is_new_book" checked>
+                            <label class="form-check-label" for="is_new_book_virtual">
+                                🆕 Mark as NEW (2 months)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-success">Add Book</button>
                     </div>
@@ -33,4 +174,36 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleBookType() {
+    const isVirtual = document.getElementById('virtual').checked;
+    const physicalFields = document.getElementById('physicalFields');
+    const virtualFields = document.getElementById('virtualFields');
+    const isVirtualInput = document.getElementById('is_virtual');
+    
+    if (isVirtual) {
+        physicalFields.style.display = 'none';
+        virtualFields.style.display = 'block';
+        isVirtualInput.value = 'on';
+        document.getElementById('copies').removeAttribute('required');
+    } else {
+        physicalFields.style.display = 'block';
+        virtualFields.style.display = 'none';
+        isVirtualInput.value = '';
+        document.getElementById('copies').setAttribute('required', 'required');
+    }
+}
+
+function togglePrebooking() {
+    const isEnabled = document.getElementById('is_prebooking').checked;
+    const prebookingFields = document.getElementById('prebookingFields');
+    
+    if (isEnabled) {
+        prebookingFields.style.display = 'block';
+    } else {
+        prebookingFields.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

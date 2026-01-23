@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Manage Pre-Bookings (24hr System)</h5>
+                </div>
+                <div class="card-body">
+                    {% if expired_reservations %}
+                    <div class="alert alert-warning">
+                        <h6>⚠️ Expired Reservations (Auto-expire after 24hrs)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Book</th>
+                                        <th>Reserved</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in expired_reservations %}
+                                    <tr>
+                                        <td>{{ reservation.user.name }}</td>
+                                        <td>{{ reservation.book.title }}</td>
+                                        <td>{{ reservation.reserved_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td><span class="badge bg-danger">Expired</span></td>
+                                        <td>
+                                            <a href="{{ url_for('main.expire_reservation', reservation_id=reservation.id) }}" 
+                                               class="btn btn-sm btn-outline-danger">Mark Expired</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <h6>📚 Active Pre-Bookings</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>PRN</th>
+                                    <th>Book</th>
+                                    <th>Reserved Date</th>
+                                    <th>Time Left</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations %}
+                                <tr>
+                                    <td>{{ reservation.user.name }}</td>
+                                    <td>{{ reservation.user.prn_number }}</td>
+                                    <td>{{ reservation.book.title }}</td>
+                                    <td>{{ reservation.reserved_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if reservation.is_expired %}
+                                            <span class="text-danger">Expired</span>
+                                        {% else %}
+                                            <span class="text-success">{{ "%.1f"|format(reservation.hours_remaining) }}h left</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reservation.status == 'active' %}
+                                            {% if reservation.is_expired %}
+                                                <span class="badge bg-danger">Expired</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ reservation.status.title() }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reservation.status == 'active' %}
+                                            <a href="{{ url_for('main.notify_reservation', reservation_id=reservation.id) }}" 
+                                               class="btn btn-sm btn-primary">📧 Notify</a>
+                                            <a href="{{ url_for('main.expire_reservation', reservation_id=reservation.id) }}" 
+                                               class="btn btn-sm btn-outline-danger">❌ Expire</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No active pre-bookings</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
