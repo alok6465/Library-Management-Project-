@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify, s
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.main import bp
-from app.models import User, Book, Loan, Notice, ExtensionRequest, LibrarySession, BookReservation, PreBooking, VirtualBookPurchase
+from app.models import User, Book, Loan, Notice, ExtensionRequest, LibrarySession, BookReservation, PreBooking, VirtualBookPurchase, Festival
 from app.excel_export import auto_export_on_change
 from sqlalchemy import func, extract
 import os
@@ -1581,3 +1581,108 @@ def download_virtual_book(book_id):
         return redirect(url_for('main.dashboard'))
     
     return send_file(pdf_path, as_attachment=True, download_name=f"{book.title}.pdf")
+
+@bp.route('/festivals')
+def festivals():
+    festivals = Festival.query.filter_by(is_active=True).order_by(Festival.date.desc()).all()
+    return render_template('main/festivals.html', title='Library Festivals', festivals=festivals)
+
+@bp.route('/manage-festivals')
+@login_required
+def manage_festivals():
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    festivals = Festival.query.order_by(Festival.date.desc()).all()
+    return render_template('main/manage_festivals.html', title='Manage Festivals', festivals=festivals)
+
+@bp.route('/add-festival', methods=['GET', 'POST'])
+@login_required
+def add_festival():
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        from datetime import datetime
+        title = request.form.get('title')
+        description = request.form.get('description')
+        date_str = request.form.get('date')
+        video_url = request.form.get('video_url')
+        
+        # Validate date
+        try:
+            festival_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            flash('Invalid date format. Please select a valid date.', 'danger')
+            return render_template('main/add_festival.html', title='Add Festival')
+        
+        image_path = None
+        image_file = request.files.get('image')
+        if image_file and image_file.filename:
+            from werkzeug.utils import secure_filename
+            upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'festivals')
+            os.makedirs(upload_dir, exist_ok=True)
+            filename = secure_filename(image_file.filename)
+            file_path = os.path.join(upload_dir, filename)
+            image_file.save(file_path)
+            image_path = f'/static/festivals/{filename}'
+        
+        video_path = None
+        video_file = request.files.get('video')
+        if video_file and video_file.filename:
+            from werkzeug.utils import secure_filename
+            upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'festivals', 'videos')
+            os.makedirs(upload_dir, exist_ok=True)
+            filename = secure_filename(video_file.filename)
+            file_path = os.path.join(upload_dir, filename)
+            video_file.save(file_path)
+            video_path = f'/static/festivals/videos/{filename}'
+        
+        festival = Festival(
+            title=title,
+            description=description,
+            date=festival_date,
+            image_path=image_path,
+            video_url=video_url,
+            video_path=video_path,
+            created_by=current_user.id
+        )
+        
+        db.session.add(festival)
+        db.session.commit()
+        
+        flash(f'Festival "{title}" added successfully!', 'success')
+        return redirect(url_for('main.manage_festivals'))
+    
+    return render_template('main/add_festival.html', title='Add Festival')
+
+@bp.route('/delete-festival/<int:festival_id>')
+@login_required
+def delete_festival(festival_id):
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    festival = Festival.query.get_or_404(festival_id)
+    db.session.delete(festival)
+    db.session.commit()
+    
+    flash('Festival deleted successfully!', 'success')
+    return redirect(url_for('main.manage_festivals'))
+
+@bp.route('/toggle-festival/<int:festival_id>')
+@login_required
+def toggle_festival(festival_id):
+    if current_user.role != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    festival = Festival.query.get_or_404(festival_id)
+    festival.is_active = not festival.is_active
+    db.session.commit()
+    
+    status = 'activated' if festival.is_active else 'deactivated'
+    flash(f'Festival "{festival.title}" {status}!', 'success')
+    return redirect(url_for('main.manage_festivals'))

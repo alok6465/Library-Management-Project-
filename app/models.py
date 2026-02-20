@@ -278,16 +278,20 @@ class VirtualBookPurchase(db.Model):
     
     def __repr__(self):
         return f'<VirtualBookPurchase {self.id}: {self.user.name} - {self.book.title}>'
+
+class Festival(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
-    purchase_type = db.Column(db.String(20), nullable=False)  # 'read' or 'download'
-    amount_paid = db.Column(db.Float, nullable=False, default=0.0)
-    purchase_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    payment_status = db.Column(db.String(20), nullable=False, default='completed')
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    date = db.Column(db.Date, nullable=False)
+    image_path = db.Column(db.String(500), nullable=True)
+    video_url = db.Column(db.String(500), nullable=True)
+    video_path = db.Column(db.String(500), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
     
-    user = db.relationship('User', backref='virtual_purchases')
-    book = db.relationship('Book', backref='purchases')
+    creator = db.relationship('User', foreign_keys=[created_by], backref='festivals')
     
     def __repr__(self):
-        return f'<VirtualBookPurchase {self.id}: {self.user.name} - {self.book.title}>'
+        return f'<Festival {self.id}: {self.title}>'

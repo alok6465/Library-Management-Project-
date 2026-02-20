@@ -1,0 +1,249 @@
+/* Festival Page Animations */
+
+.festival-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 4rem 2rem;
+    border-radius: 24px;
+    color: white;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.festival-hero::before {
+    content: '🎉';
+    position: absolute;
+    font-size: 15rem;
+    opacity: 0.1;
+    right: -50px;
+    top: -50px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.festival-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+}
+
+.festival-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.festival-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.4s;
+}
+
+.festival-card:hover .festival-image {
+    transform: scale(1.1);
+}
+
+.festival-image-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    cursor: pointer;
+}
+
+.festival-card:hover .video-overlay {
+    opacity: 1;
+}
+
+.festival-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+.festival-content {
+    padding: 1.5rem;
+}
+
+.festival-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.festival-date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.festival-description {
+    color: #34495e;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.festival-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Floating Button */
+.festival-float-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+    transition: all 0.3s;
+    animation: bounce 2s infinite;
+    z-index: 1000;
+    text-decoration: none;
+}
+
+.festival-float-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    color: white;
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.festival-card {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.festival-card:nth-child(1) { animation-delay: 0.1s; }
+.festival-card:nth-child(2) { animation-delay: 0.2s; }
+.festival-card:nth-child(3) { animation-delay: 0.3s; }
+.festival-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Video Modal */
+.video-modal .modal-dialog {
+    max-width: 90vw;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: #000;
+}
+
+.video-container iframe,
+.video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Admin Festival Management */
+.festival-admin-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+}
+
+.festival-admin-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Confetti Effect */
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: #f0f;
+    position: absolute;
+    animation: confetti-fall 3s linear infinite;
+}
+
+@keyframes confetti-fall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .festival-hero {
+        padding: 2rem 1rem;
+    }
+    
+    .festival-float-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .festival-image {
+        height: 200px;
+    }
+}

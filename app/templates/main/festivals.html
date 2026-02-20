@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/festival.css') }}">
+
+<div class="festival-hero">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">🎉 Library Festivals</h1>
+        <p class="lead">Celebrate knowledge, culture, and community with us!</p>
+    </div>
+</div>
+
+{% if festivals %}
+<div class="row">
+    {% for festival in festivals %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="festival-card">
+            <div class="festival-image-container">
+                {% if festival.video_path %}
+                <video class="festival-image" muted loop autoplay playsinline>
+                    <source src="{{ festival.video_path }}" type="video/mp4">
+                </video>
+                <div class="video-overlay" onclick="openVideo('{{ festival.video_path }}', '{{ festival.title }}', 'file')">
+                    <i class="bi bi-play-circle-fill" style="font-size: 4rem; color: white;"></i>
+                </div>
+                {% elif festival.image_path %}
+                <img src="{{ festival.image_path }}" alt="{{ festival.title }}" class="festival-image" 
+                     onclick="viewImage('{{ festival.image_path }}', '{{ festival.title }}')" style="cursor: pointer;">
+                {% else %}
+                <div class="festival-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem;">
+                    🎊
+                </div>
+                {% endif %}
+                <div class="festival-badge">{{ festival.date.strftime('%d %b %Y') }}</div>
+            </div>
+            
+            <div class="festival-content">
+                <h3 class="festival-title">{{ festival.title }}</h3>
+                <div class="festival-date">
+                    <i class="bi bi-calendar-event"></i>
+                    {{ festival.date.strftime('%A, %B %d, %Y') }}
+                </div>
+                <p class="festival-description">{{ festival.description }}</p>
+                
+                {% if festival.video_url or festival.video_path %}
+                <div class="festival-actions">
+                    {% if festival.video_url %}
+                    <button class="btn btn-primary btn-sm" onclick="openVideo('{{ festival.video_url }}', '{{ festival.title }}', 'url')">
+                        <i class="bi bi-play-circle"></i> Watch Video
+                    </button>
+                    {% elif festival.video_path %}
+                    <button class="btn btn-primary btn-sm" onclick="openVideo('{{ festival.video_path }}', '{{ festival.title }}', 'file')">
+                        <i class="bi bi-play-circle"></i> Watch Video
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-calendar-x" style="font-size: 4rem; color: #ccc;"></i>
+    <h4 class="mt-3 text-muted">No festivals yet</h4>
+    <p class="text-muted">Check back soon for upcoming celebrations!</p>
+</div>
+{% endif %}
+
+<!-- Floating Festival Button -->
+<a href="{{ url_for('main.festivals') }}" class="festival-float-btn" title="Festivals">
+    🎉
+</a>
+
+<!-- Video Modal -->
+<div class="modal fade video-modal" id="videoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="videoTitle">Festival Video</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="video-container">
+                    <iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageTitle">Festival Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="fullImage" src="" style="max-width: 100%; max-height: 80vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openVideo(url, title, type) {
+    document.getElementById('videoTitle').textContent = title;
+    const videoContainer = document.querySelector('.video-container');
+    
+    if (type === 'url') {
+        // Convert YouTube URL to embed format
+        let embedUrl = url;
+        if (url.includes('youtube.com/watch')) {
+            const videoId = url.split('v=')[1].split('&')[0];
+            embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        } else if (url.includes('youtu.be/')) {
+            const videoId = url.split('youtu.be/')[1].split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+        videoContainer.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen style="width:100%;height:100%;"></iframe>`;
+    } else {
+        // For uploaded video files, use HTML5 video player
+        videoContainer.innerHTML = `<video controls autoplay style="width: 100%; height: 100%; background: #000;"><source src="${url}" type="video/mp4">Your browser does not support the video tag.</video>`;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('videoModal'));
+    modal.show();
+}
+
+function viewImage(imagePath, title) {
+    document.getElementById('imageTitle').textContent = title;
+    document.getElementById('fullImage').src = imagePath;
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
+    const videoContainer = document.querySelector('.video-container');
+    videoContainer.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>';
+});
+
+document.getElementById('imageModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('fullImage').src = '';
+});
+</script>
+{% endblock %}

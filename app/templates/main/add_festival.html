@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Festival</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-semibold">Festival Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               placeholder="e.g., World Book Day 2024">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-semibold">Festival Date *</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-semibold">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                                  placeholder="Describe the festival celebration..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label fw-semibold">Festival Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <small class="text-muted">Upload festival photo (JPG, PNG, GIF - Max 5MB)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="video_url" class="form-label fw-semibold">Video URL (YouTube)</label>
+                        <input type="url" class="form-control" id="video_url" name="video_url"
+                               placeholder="https://youtube.com/watch?v=...">
+                        <small class="text-muted">YouTube video link</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="video" class="form-label fw-semibold">OR Upload Video File</label>
+                        <input type="file" class="form-control" id="video" name="video" accept="video/*">
+                        <small class="text-muted">Upload video (MP4, AVI, MOV - Max 50MB)</small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.manage_festivals') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Add Festival
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
