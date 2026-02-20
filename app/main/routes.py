@@ -326,7 +326,10 @@ def search():
         # Fuzzy search with multiple strategies
         from sqlalchemy import or_, func
         
-        # Strategy 1: Exact matches (highest priority)
+        # Strategy 1: Check if query matches a category
+        category_books = Book.query.filter(Book.category.ilike(f'%{query}%')).all()
+        
+        # Strategy 2: Exact matches in title/author (highest priority)
         exact_books = Book.query.filter(
             or_(
                 Book.title.ilike(f'%{query}%'),
@@ -334,7 +337,7 @@ def search():
             )
         ).all()
         
-        # Strategy 2: Word-by-word matching for partial matches
+        # Strategy 3: Word-by-word matching for partial matches
         words = query.lower().split()
         word_books = []
         if len(words) > 1:
@@ -347,16 +350,16 @@ def search():
                 author_matches = sum(1 for word in words if word in author_lower)
                 
                 if title_matches > 0 or author_matches > 0:
-                    if book not in exact_books:
+                    if book not in exact_books and book not in category_books:
                         word_books.append((book, title_matches + author_matches))
             
             # Sort by match score
             word_books.sort(key=lambda x: x[1], reverse=True)
             word_books = [book for book, score in word_books]
         
-        # Strategy 3: Fuzzy matching for typos
+        # Strategy 4: Fuzzy matching for typos
         fuzzy_books = []
-        if not exact_books and not word_books:
+        if not exact_books and not word_books and not category_books:
             for book in Book.query.all():
                 title_similarity = calculate_similarity(query.lower(), book.title.lower())
                 author_similarity = calculate_similarity(query.lower(), book.author.lower())
@@ -369,8 +372,8 @@ def search():
             fuzzy_books.sort(key=lambda x: x[1], reverse=True)
             fuzzy_books = [book for book, score in fuzzy_books[:10]]  # Top 10 matches
         
-        # Combine results (exact first, then word matches, then fuzzy)
-        books = exact_books + word_books + fuzzy_books
+        # Combine results (category first, then exact, then word matches, then fuzzy)
+        books = category_books + exact_books + word_books + fuzzy_books
         
         # Remove duplicates while preserving order
         seen = set()

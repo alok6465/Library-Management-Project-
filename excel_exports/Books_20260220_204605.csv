@@ -1,0 +1,54 @@
+ID,Title,Author,Category,Course,Semester,ISBN,Total Copies,Available Copies,Borrowed Copies
+1,Programming with C,E. Balagurusamy,Programming,BSC CS,Sem 1,978-0070141698,5,5,0
+2,Digital Electronics,R.P. Jain,Electronics,BSC CS,Sem 1,978-0070648906,4,4,0
+3,Mathematics I,B.S. Grewal,Mathematics,BSC CS,Sem 1,978-8173716751,6,6,0
+4,Computer Fundamentals,P.K. Sinha,Computer Science,BSC CS,Sem 1,978-8176567640,6,6,0
+5,Data Structures Using C,Reema Thareja,Programming,BSC CS,Sem 2,978-0198099307,6,6,0
+6,Computer Organization,Carl Hamacher,Computer Architecture,BSC CS,Sem 2,978-0073380650,3,3,0
+7,Mathematics II,B.V. Ramana,Mathematics,BSC CS,Sem 2,978-0070681910,4,4,0
+8,Environmental Studies,Erach Bharucha,Environmental Science,BSC CS,Sem 2,978-8173716638,5,4,1
+9,Object Oriented Programming with C++,E. Balagurusamy,Programming,BSC CS,Sem 3,978-0070634381,4,4,0
+10,Database Management Systems,Raghu Ramakrishnan,Database,BSC CS,Sem 3,978-0072465631,5,5,0
+11,Computer Graphics,Donald Hearn,Graphics,BSC CS,Sem 3,978-0131496705,3,3,0
+12,Discrete Mathematics,Kenneth Rosen,Mathematics,BSC CS,Sem 3,978-0073383095,4,4,0
+13,Java Programming,Joyce Farrell,Programming,BSC CS,Sem 4,978-1337397070,5,5,0
+14,Operating Systems,Abraham Silberschatz,Operating Systems,BSC CS,Sem 4,978-1118063330,4,4,0
+15,Computer Networks,Andrew Tanenbaum,Networking,BSC CS,Sem 4,978-0132126953,4,4,0
+16,Software Engineering,Roger Pressman,Software Engineering,BSC CS,Sem 4,978-0078022128,3,3,0
+17,Web Technologies,Uttam K. Roy,Web Development,BSC CS,Sem 5,978-0198072928,4,4,0
+18,Artificial Intelligence,Stuart Russell,AI/ML,BSC CS,Sem 5,978-0136042594,3,3,0
+19,Theory of Computation,Michael Sipser,Theory,BSC CS,Sem 5,978-1133187790,2,2,0
+20,Mobile Application Development,Wei-Meng Lee,Mobile Development,BSC CS,Sem 5,978-1118301821,4,4,0
+21,Machine Learning,Tom Mitchell,AI/ML,BSC CS,Sem 6,978-0070428072,3,3,0
+22,Information Security,Mark Stamp,Security,BSC CS,Sem 6,978-0471738480,4,4,0
+23,Project Management,K. Nagarajan,Management,BSC CS,Sem 6,978-8122434987,3,3,0
+24,Programming Logic and Design,Joyce Farrell,Programming,BSC IT,Sem 1,978-1337102070,5,5,0
+25,Computer Systems Architecture,M. Morris Mano,Computer Architecture,BSC IT,Sem 1,978-0131755635,4,4,0
+26,Business Communication,Meenakshi Raman,Communication,BSC IT,Sem 1,978-0198066415,4,4,0
+27,Applied Mathematics I,P.N. Wartikar,Mathematics,BSC IT,Sem 1,978-8184871647,5,5,0
+28,Object Oriented Programming,Robert Lafore,Programming,BSC IT,Sem 2,978-0672323089,4,4,0
+29,Microprocessor Architecture,Barry B. Brey,Computer Architecture,BSC IT,Sem 2,978-0135026458,3,3,0
+30,Applied Mathematics II,H.K. Dass,Mathematics,BSC IT,Sem 2,978-8121926942,4,4,0
+31,Digital Systems and Logic Design,Charles Roth,Electronics,BSC IT,Sem 2,978-0495668046,4,4,0
+32,Data Structures and Files,Michael J. Folk,Programming,BSC IT,Sem 3,978-0201557138,4,4,0
+33,Computer Networks and Data Communication,Behrouz Forouzan,Networking,BSC IT,Sem 3,978-0073376226,5,5,0
+34,Software Engineering,Ian Sommerville,Software Engineering,BSC IT,Sem 3,978-0133943030,4,4,0
+35,Applied Mathematics III,Grewal B.S.,Mathematics,BSC IT,Sem 3,978-8173716836,3,3,0
+36,Database Management Systems,Elmasri & Navathe,Database,BSC IT,Sem 4,978-0133970777,5,5,0
+37,Internet Programming,Deitel & Deitel,Web Development,BSC IT,Sem 4,978-0132151009,4,4,0
+38,Operating Systems,William Stallings,Operating Systems,BSC IT,Sem 4,978-0133591620,4,4,0
+39,Numerical and Statistical Methods,P. Kandasamy,Mathematics,BSC IT,Sem 4,978-8121926942,3,3,0
+40,Software Project Management,Bob Hughes,Management,BSC IT,Sem 5,978-0077122799,3,3,0
+41,Internet of Things,Arshdeep Bahga,IoT,BSC IT,Sem 5,978-8173719547,4,4,0
+42,Advanced Web Programming,Chris Bates,Web Development,BSC IT,Sem 5,978-0470057735,4,4,0
+43,Enterprise Java,Kathy Sierra,Programming,BSC IT,Sem 5,978-0596009205,3,3,0
+44,Geographic Information System,Kang-tsung Chang,GIS,BSC IT,Sem 6,978-0073522890,2,2,0
+45,ERP and Business Intelligence,Alexis Leon,Business Intelligence,BSC IT,Sem 6,978-0070151284,3,3,0
+46,Cyber Security,Nina Godbole,Security,BSC IT,Sem 6,978-8126556748,4,4,0
+47,Introduction to Algorithms,Thomas Cormen,Algorithms,All Courses,Reference,978-0262033848,3,3,0
+48,Design Patterns,Gang of Four,Software Design,All Courses,Reference,978-0201633610,2,2,0
+49,Clean Code,Robert Martin,Programming,All Courses,Reference,978-0132350884,4,4,0
+50,Computer Science Illuminated,Nell Dale,Computer Science,All Courses,Reference,978-1284155617,3,3,0
+51,The Pragmatic Programmer,Andrew Hunt,Programming,All Courses,Reference,978-0135957059,2,0,2
+55,The silent patient ,Alex Michaelides,General,Story Book ,,,1,1,0
+56,One Piece V0001 ,Eiichiro Oda,MANGA,,,,1,1,0
