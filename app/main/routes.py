@@ -297,10 +297,17 @@ def student_dashboard():
     
     recent_notices = sorted(all_notices + student_specific, key=lambda x: x.created_date, reverse=True)[:5]
     
+    # Get upcoming festival
+    upcoming_festival = Festival.query.filter(
+        Festival.is_active == True,
+        Festival.date >= datetime.utcnow().date()
+    ).order_by(Festival.date.asc()).first()
+    
     return render_template('main/dashboard_student_modern.html', title='Student Dashboard', 
                          books=books, my_loans=my_loans, my_reservations=my_reservations, 
                          recent_notices=recent_notices, categories=categories, 
-                         selected_category=category_filter, selected_type=book_type)
+                         selected_category=category_filter, selected_type=book_type,
+                         upcoming_festival=upcoming_festival)
 
 @bp.route('/admin-dashboard')
 @login_required

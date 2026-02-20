@@ -207,6 +207,40 @@
     </div>
 </div>
 
+<!-- Festival Popup Modal -->
+{% if upcoming_festival %}
+<div class="modal fade" id="festivalPopup" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
+            <div class="modal-body p-0" style="position: relative;">
+                {% if upcoming_festival.image_path %}
+                <img src="{{ upcoming_festival.image_path }}" style="width: 100%; height: auto; display: block;">
+                {% elif upcoming_festival.video_path %}
+                <video autoplay muted loop style="width: 100%; height: auto; display: block;">
+                    <source src="{{ upcoming_festival.video_path }}" type="video/mp4">
+                </video>
+                {% else %}
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 4rem; text-align: center; color: white;">
+                    <h2 style="font-size: 3rem; margin-bottom: 1rem;">🎉</h2>
+                    <h3>{{ upcoming_festival.title }}</h3>
+                    <p>{{ upcoming_festival.date.strftime('%d %B %Y') }}</p>
+                </div>
+                {% endif %}
+                <button type="button" class="btn-close" data-bs-dismiss="modal" 
+                        style="position: absolute; top: 15px; right: 15px; background: white; opacity: 1; border-radius: 50%; padding: 0.75rem;"></button>
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 2rem; color: white;">
+                    <h4>{{ upcoming_festival.title }}</h4>
+                    <p class="mb-2"><i class="bi bi-calendar-event"></i> {{ upcoming_festival.date.strftime('%d %B %Y') }}</p>
+                    {% if upcoming_festival.description %}
+                    <p class="mb-0">{{ upcoming_festival.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
@@ -222,5 +256,13 @@ function openPDFReader(bookId, bookTitle) {
 document.getElementById('pdfReaderModal').addEventListener('hidden.bs.modal', function () {
     document.getElementById('pdfViewer').src = '';
 });
+
+// Festival Popup on Login
+{% if upcoming_festival %}
+window.addEventListener('DOMContentLoaded', function() {
+    const festivalModal = new bootstrap.Modal(document.getElementById('festivalPopup'));
+    festivalModal.show();
+});
+{% endif %}
 </script>
 {% endblock %}
