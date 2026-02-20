@@ -1,0 +1,11 @@
+ID,Student PRN,Student Name,Book Title,Book Author,Issue Date,Due Date,Return Date,Status,Is Overdue,Days Overdue,Fine Amount
+1,ADM2025001,Alok Sir ,Computer Science Illuminated,Nell Dale,2025-12-28 14:21:30.398442,2026-01-11 14:21:30.316010,2026-01-17 14:43:48.871158,Returned,No,0,30.0
+2,ADM2025002,Tiwari Aalok,Computer Science Illuminated,Nell Dale,2026-01-17 14:31:06.578941,2026-01-31 14:31:06.560445,2026-01-17 14:31:21.309967,Returned,No,0,0.0
+3,ADM2025002,Tiwari Aalok,Computer Science Illuminated,Nell Dale,2026-01-17 14:31:38.064459,2026-01-31 14:31:37.993856,2026-01-17 14:32:04.080544,Returned,No,0,0.0
+4,ADM2025002,Tiwari Aalok,Data Structures Using C,Reema Thareja,2026-01-17 14:32:44.541497,2026-01-31 14:32:44.465145,2026-02-18 13:48:29.532274,Returned,No,0,85.0
+5,ADM2025002,Tiwari Aalok,Programming with C,E. Balagurusamy,2026-01-17 14:41:09.718794,2026-01-31 14:41:09.708136,2026-01-18 03:46:12.933593,Returned,No,0,0.0
+7,ADM2025001,Alok Sir ,The silent patient ,Alex Michaelides,2026-01-18 04:02:29.616412,2026-02-01 04:02:29.576632,2026-01-18 04:02:49.383143,Returned,No,0,0.0
+8,ADM2025002,Tiwari Aalok,Software Engineering,Roger Pressman,2026-02-18 13:52:31.025770,2026-03-04 13:52:31.018284,2026-02-20 07:12:25.113194,Returned,No,0,0.0
+9,ADM2025001,Alok Sir ,The silent patient ,Alex Michaelides,2026-02-18 13:56:24.885382,2026-03-04 13:56:24.881468,2026-02-18 13:56:29.384076,Returned,No,0,0.0
+10,ADM2025002,Tiwari Aalok,The silent patient ,Alex Michaelides,2026-02-18 13:57:05.306078,2026-03-04 13:57:05.302087,Not Returned,Active,No,0,0.0
+11,ADM2025002,Tiwari Aalok,Environmental Studies,Erach Bharucha,2026-02-20 07:12:35.209642,2026-03-06 07:12:35.195884,Not Returned,Active,No,0,0.0

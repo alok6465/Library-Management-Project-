@@ -37,14 +37,28 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="category" class="form-label fw-semibold">Category</label>
-                                <select class="form-select" id="category" name="category">
-                                    <option value="General" {% if book.category == 'General' %}selected{% endif %}>General</option>
+                                <select class="form-select" id="categorySelect" name="category" onchange="toggleCustomCategory()">
+                                    <option value="">-- Select or Add New --</option>
                                     <option value="Programming" {% if book.category == 'Programming' %}selected{% endif %}>Programming</option>
                                     <option value="Web Development" {% if book.category == 'Web Development' %}selected{% endif %}>Web Development</option>
                                     <option value="Data Science" {% if book.category == 'Data Science' %}selected{% endif %}>Data Science</option>
                                     <option value="Mathematics" {% if book.category == 'Mathematics' %}selected{% endif %}>Mathematics</option>
                                     <option value="Science" {% if book.category == 'Science' %}selected{% endif %}>Science</option>
+                                    <option value="Literature" {% if book.category == 'Literature' %}selected{% endif %}>Literature</option>
+                                    <option value="History" {% if book.category == 'History' %}selected{% endif %}>History</option>
+                                    <option value="AI/ML" {% if book.category == 'AI/ML' %}selected{% endif %}>AI/ML</option>
+                                    <option value="Database" {% if book.category == 'Database' %}selected{% endif %}>Database</option>
+                                    <option value="Networking" {% if book.category == 'Networking' %}selected{% endif %}>Networking</option>
+                                    <option value="Security" {% if book.category == 'Security' %}selected{% endif %}>Security</option>
+                                    <option value="Mobile Development" {% if book.category == 'Mobile Development' %}selected{% endif %}>Mobile Development</option>
+                                    {% if book.category and book.category not in ['Programming', 'Web Development', 'Data Science', 'Mathematics', 'Science', 'Literature', 'History', 'AI/ML', 'Database', 'Networking', 'Security', 'Mobile Development'] %}
+                                    <option value="{{ book.category }}" selected>{{ book.category }}</option>
+                                    {% endif %}
+                                    <option value="CUSTOM">✏️ Add New Category</option>
                                 </select>
+                                <input type="text" class="form-control mt-2" id="customCategory" name="custom_category" 
+                                       placeholder="Enter new category name" style="display: none;">
+                                <small class="text-muted">Current: <strong>{{ book.category or 'None' }}</strong></small>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -67,6 +81,18 @@
                         <label for="isbn" class="form-label fw-semibold">ISBN</label>
                         <input type="text" class="form-control" id="isbn" name="isbn" 
                                value="{{ book.isbn or '' }}" placeholder="978-0123456789">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="thumbnail" class="form-label fw-semibold">Book Thumbnail/Cover Image</label>
+                        {% if book.thumbnail %}
+                        <div class="mb-2">
+                            <img src="{{ book.thumbnail }}" alt="Current thumbnail" style="max-width: 150px; border-radius: 8px;">
+                            <small class="d-block text-muted">Current thumbnail</small>
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="thumbnail" name="thumbnail" accept="image/*">
+                        <small class="text-muted">Upload new cover image to replace (JPG, PNG, GIF - Max 5MB)</small>
                     </div>
                     
                     {% if book.is_virtual %}
@@ -159,4 +185,20 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleCustomCategory() {
+    const select = document.getElementById('categorySelect');
+    const customInput = document.getElementById('customCategory');
+    
+    if (select.value === 'CUSTOM') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+        customInput.value = '';
+    }
+}
+</script>
 {% endblock %}

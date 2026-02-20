@@ -46,8 +46,8 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="category" class="form-label fw-semibold">Category</label>
-                                <select class="form-select" id="category" name="category">
-                                    <option value="General">General</option>
+                                <select class="form-select" id="categorySelect" name="category" onchange="toggleCustomCategory()">
+                                    <option value="">-- Select or Add New --</option>
                                     <option value="Programming">Programming</option>
                                     <option value="Web Development">Web Development</option>
                                     <option value="Data Science">Data Science</option>
@@ -55,7 +55,16 @@
                                     <option value="Science">Science</option>
                                     <option value="Literature">Literature</option>
                                     <option value="History">History</option>
+                                    <option value="AI/ML">AI/ML</option>
+                                    <option value="Database">Database</option>
+                                    <option value="Networking">Networking</option>
+                                    <option value="Security">Security</option>
+                                    <option value="Mobile Development">Mobile Development</option>
+                                    <option value="CUSTOM">✏️ Add New Category</option>
                                 </select>
+                                <input type="text" class="form-control mt-2" id="customCategory" name="custom_category" 
+                                       placeholder="Enter new category name" style="display: none;">
+                                <small class="text-muted">Select existing or create new category</small>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -75,6 +84,12 @@
                     <div class="mb-3">
                         <label for="isbn" class="form-label fw-semibold">ISBN</label>
                         <input type="text" class="form-control" id="isbn" name="isbn" placeholder="978-0123456789">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="thumbnail" class="form-label fw-semibold">Book Thumbnail/Cover Image</label>
+                        <input type="file" class="form-control" id="thumbnail" name="thumbnail" accept="image/*">
+                        <small class="text-muted">Upload book cover image (JPG, PNG, GIF - Max 5MB)</small>
                     </div>
                     
                     <!-- Physical Book Fields -->
@@ -176,6 +191,20 @@
 </div>
 
 <script>
+function toggleCustomCategory() {
+    const select = document.getElementById('categorySelect');
+    const customInput = document.getElementById('customCategory');
+    
+    if (select.value === 'CUSTOM') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+        customInput.value = '';
+    }
+}
+
 function toggleBookType() {
     const isVirtual = document.getElementById('virtual').checked;
     const physicalFields = document.getElementById('physicalFields');

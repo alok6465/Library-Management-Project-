@@ -1,18 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="search-header">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+
+<div class="search-header mb-4">
     <h2><i class="bi bi-search"></i> Search Results</h2>
     {% if query %}
-        <p class="text-muted">Results for: "<strong>{{ query }}</strong>"</p>
-        <p class="text-muted">Found {{ books|length }} book(s)</p>
-        {% if books|length > 0 and query|length > 3 %}
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="bi bi-lightbulb"></i> <strong>Smart Search:</strong> 
-                Results include exact matches, partial matches, and similar spellings.
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endif %}
+        <p class="text-muted">Results for: "<strong>{{ query }}</strong>" - Found <strong>{{ books|length }}</strong> book(s)</p>
     {% else %}
         <p class="text-muted">Enter a search term to find books</p>
     {% endif %}
@@ -21,25 +15,100 @@
 {% if books %}
 <div class="row">
     {% for book in books %}
-    <div class="col-md-4 mb-4">
-        <div class="card book-card">
-            <div class="card-body">
-                <h6 class="book-title">{{ book.title }}</h6>
-                <p class="book-author">by {{ book.author }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="availability-badge badge bg-{{ book.availability_status.color }}">
-                        {{ book.availability_status.text }} ({{ book.copies_available }}/{{ book.copies_total }})
-                    </span>
-                    {% if current_user.is_authenticated and book.copies_available > 0 %}
-                        <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" 
-                           class="btn btn-sm btn-primary">Borrow</a>
-                    {% elif current_user.is_authenticated and book.can_be_reserved %}
-                        <a href="{{ url_for('main.reserve_book', book_id=book.id) }}" 
-                           class="btn btn-sm btn-warning">Reserve</a>
-                    {% elif current_user.is_authenticated %}
-                        <button class="btn btn-sm btn-secondary" disabled>Unavailable</button>
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="book-card-modern">
+            {% if book.thumbnail %}
+            <img src="{{ book.thumbnail }}" alt="{{ book.title }}" class="book-thumbnail">
+            {% else %}
+            <div class="book-thumbnail-placeholder">
+                {% if book.is_virtual %}
+                <i class="bi bi-file-earmark-pdf"></i>
+                {% else %}
+                <i class="bi bi-book"></i>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="book-card-body">
+                <h6 class="book-title-modern">{{ book.title }}</h6>
+                <p class="book-author-modern">{{ book.author }}</p>
+                
+                <div class="book-badges">
+                    {% if book.is_still_new %}
+                    <span class="badge badge-modern bg-success">🆕 NEW</span>
+                    {% endif %}
+                    
+                    {% if book.is_virtual %}
+                    <span class="badge badge-modern bg-info">💻 Virtual</span>
+                    {% elif book.copies_available > 0 %}
+                    <span class="badge badge-modern bg-success">✓ Available</span>
                     {% else %}
-                        <a href="{{ url_for('auth.student_login') }}" class="btn btn-sm btn-outline-primary">Login to Borrow</a>
+                    <span class="badge badge-modern bg-danger">✗ Unavailable</span>
+                    {% endif %}
+                    
+                    {% if book.category %}
+                    <span class="badge badge-modern bg-secondary">{{ book.category }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="book-actions">
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <!-- Admin Actions -->
+                        <a href="{{ url_for('main.edit_book', book_id=book.id) }}" 
+                           class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-pencil"></i> Edit Book
+                        </a>
+                        <a href="{{ url_for('main.book_details', book_id=book.id) }}" 
+                           class="btn btn-sm btn-info w-100">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                        {% set active_loans = book.loans.filter_by(return_date=None).count() %}
+                        {% if active_loans == 0 %}
+                        <a href="{{ url_for('main.delete_book', book_id=book.id) }}" 
+                           class="btn btn-sm btn-danger w-100"
+                           onclick="return confirm('Delete this book?')">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                        {% else %}
+                        <button class="btn btn-sm btn-secondary w-100" disabled title="Has {{ active_loans }} active loan(s)">
+                            <i class="bi bi-lock"></i> Has Loans
+                        </button>
+                        {% endif %}
+                    {% elif book.is_virtual %}
+                        {% if current_user.is_authenticated %}
+                        <button onclick="openPDFReader({{ book.id }}, '{{ book.title }}')"
+                                class="btn btn-sm btn-modern btn-modern-primary w-100">
+                            <i class="bi bi-eye"></i> Read Now
+                        </button>
+                        <a href="{{ url_for('main.download_virtual_book', book_id=book.id) }}"
+                           class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.student_login') }}"
+                           class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Read
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        {% if current_user.is_authenticated %}
+                            {% if book.copies_available > 0 %}
+                            <a href="{{ url_for('main.borrow_book', book_id=book.id) }}"
+                               class="btn btn-sm btn-modern btn-modern-primary w-100">
+                                <i class="bi bi-bookmark-plus"></i> Borrow Book
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('main.reserve_book', book_id=book.id) }}"
+                               class="btn btn-sm btn-warning w-100">
+                                <i class="bi bi-clock"></i> Reserve (24h)
+                            </a>
+                            {% endif %}
+                        {% else %}
+                        <a href="{{ url_for('auth.student_login') }}"
+                           class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Borrow
+                        </a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -62,4 +131,37 @@
     </div>
 </div>
 {% endif %}
+
+<!-- PDF Reader Modal -->
+<div class="modal fade pdf-reader-modal" id="pdfReaderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfReaderTitle">Book Reader</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="pdf-viewer-container">
+                    <iframe id="pdfViewer" src=""></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openPDFReader(bookId, bookTitle) {
+    const modal = new bootstrap.Modal(document.getElementById('pdfReaderModal'));
+    document.getElementById('pdfReaderTitle').textContent = bookTitle;
+    document.getElementById('pdfViewer').src = `/read-virtual-book/${bookId}`;
+    modal.show();
+}
+
+document.getElementById('pdfReaderModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('pdfViewer').src = '';
+});
+</script>
 {% endblock %}

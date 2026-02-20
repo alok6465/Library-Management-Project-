@@ -21,10 +21,7 @@
                                 {% for category in categories %}
                                 <tr>
                                     <td>{{ category }}</td>
-                                    <td>
-                                        {% set count = books.query.filter_by(category=category).count() %}
-                                        {{ count }} books
-                                    </td>
+                                    <td>{{ category_counts[category] }} books</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -30,38 +30,20 @@
                     </div>
                     <div class="d-flex justify-content-between">
                         <span>Download PDF:</span>
-                        <span class="text-primary fw-bold">₹{{ book.download_price }}</span>
+                        <span class="text-success fw-bold">FREE</span>
                     </div>
                 </div>
                 
                 {% if current_user.is_authenticated %}
-                    {% set read_purchase = current_user.virtual_purchases|selectattr('book_id', 'equalto', book.id)|selectattr('purchase_type', 'equalto', 'read')|first %}
-                    {% set download_purchase = current_user.virtual_purchases|selectattr('book_id', 'equalto', book.id)|selectattr('purchase_type', 'equalto', 'download')|first %}
-                    
                     <div class="d-grid gap-2">
-                        {% if read_purchase %}
-                            <a href="{{ url_for('main.read_virtual_book', book_id=book.id) }}" 
-                               class="btn btn-success btn-sm">
-                                <i class="bi bi-book-open"></i> Read Now
-                            </a>
-                        {% else %}
-                            <a href="{{ url_for('main.purchase_virtual_book', book_id=book.id, purchase_type='read') }}" 
-                               class="btn btn-outline-success btn-sm">
-                                <i class="bi bi-eye"></i> Get Free Access
-                            </a>
-                        {% endif %}
-                        
-                        {% if download_purchase %}
-                            <a href="{{ url_for('main.download_virtual_book', book_id=book.id) }}" 
-                               class="btn btn-primary btn-sm">
-                                <i class="bi bi-download"></i> Download PDF
-                            </a>
-                        {% else %}
-                            <a href="{{ url_for('main.purchase_virtual_book', book_id=book.id, purchase_type='download') }}" 
-                               class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-cart-plus"></i> Buy Download (₹{{ book.download_price }})
-                            </a>
-                        {% endif %}
+                        <a href="{{ url_for('main.read_virtual_book', book_id=book.id) }}" 
+                           class="btn btn-success btn-sm">
+                            <i class="bi bi-eye"></i> Read Free
+                        </a>
+                        <a href="{{ url_for('main.download_virtual_book', book_id=book.id) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-download"></i> Download Free
+                        </a>
                     </div>
                 {% else %}
                     <div class="d-grid gap-2">

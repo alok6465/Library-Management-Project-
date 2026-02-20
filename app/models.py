@@ -51,6 +51,7 @@ class Book(db.Model):
     semester = db.Column(db.String(20), nullable=True)
     course = db.Column(db.String(50), nullable=True)
     isbn = db.Column(db.String(20), nullable=True)
+    thumbnail = db.Column(db.String(500), nullable=True)
     copies_total = db.Column(db.Integer, nullable=False, default=1)
     copies_available = db.Column(db.Integer, nullable=False, default=1)
     

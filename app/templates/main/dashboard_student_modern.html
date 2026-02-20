@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+
+<!-- Hero Section -->
+<div class="hero-modern mb-4">
+    <div class="hero-content">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-3">Welcome back, {{ current_user.name }}! 📚</h1>
+                <p class="lead mb-0">Explore our collection of {{ books|length }} books across multiple categories</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('main.view_notices') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-bell"></i> View Notices
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card-modern">
+            <div class="stat-icon primary">
+                <i class="bi bi-book"></i>
+            </div>
+            <div class="stat-value">{{ books|length }}</div>
+            <div class="stat-label">Total Books Available</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card-modern">
+            <div class="stat-icon warning">
+                <i class="bi bi-bookmark-check"></i>
+            </div>
+            <div class="stat-value">{{ my_loans|length }}</div>
+            <div class="stat-label">Currently Borrowed</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card-modern">
+            <div class="stat-icon success">
+                <i class="bi bi-star"></i>
+            </div>
+            <div class="stat-value">{{ current_user.total_books_borrowed }}</div>
+            <div class="stat-label">Total Books Read</div>
+        </div>
+    </div>
+</div>
+
+<!-- My Borrowed Books -->
+{% if my_loans %}
+<div class="card card-hover-lift mb-4">
+    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;">
+        <h5 class="mb-0"><i class="bi bi-book-half"></i> My Borrowed Books</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Author</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in my_loans %}
+                    <tr>
+                        <td><strong>{{ loan.book.title }}</strong></td>
+                        <td>{{ loan.book.author }}</td>
+                        <td>{{ loan.due_date.strftime('%d %b %Y') }}</td>
+                        <td>
+                            {% if loan.is_overdue %}
+                                <span class="badge bg-danger">Overdue ({{ loan.days_overdue }} days)</span>
+                            {% else %}
+                                <span class="badge bg-success">On Time</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('main.return_book', loan_id=loan.id) }}" class="btn btn-sm btn-success">
+                                <i class="bi bi-check-circle"></i> Return
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Category: NEW BOOKS -->
+{% set new_books = books|selectattr('is_still_new')|list %}
+{% if new_books %}
+<div class="category-section">
+    <div class="category-header">
+        <div class="category-title">
+            <div class="category-icon">🆕</div>
+            <span>New Arrivals</span>
+        </div>
+        <a href="{{ url_for('main.books_by_category', category='NEW') }}" class="view-all-btn">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="books-scroll-container">
+        {% for book in new_books[:10] %}
+        <div class="book-card-scroll">
+            {% include 'main/book_card_modern.html' %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Category: POPULAR BOOKS -->
+{% set popular_books = books|sort(attribute='copies_total', reverse=true) %}
+{% if popular_books %}
+<div class="category-section">
+    <div class="category-header">
+        <div class="category-title">
+            <div class="category-icon">🔥</div>
+            <span>Popular Books</span>
+        </div>
+        <a href="{{ url_for('main.books_by_category', category='POPULAR') }}" class="view-all-btn">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="books-scroll-container">
+        {% for book in popular_books[:10] %}
+        <div class="book-card-scroll">
+            {% include 'main/book_card_modern.html' %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Category: VIRTUAL BOOKS -->
+{% set virtual_books = books|selectattr('is_virtual')|list %}
+{% if virtual_books %}
+<div class="category-section">
+    <div class="category-header">
+        <div class="category-title">
+            <div class="category-icon">💻</div>
+            <span>Virtual Books</span>
+        </div>
+        <a href="{{ url_for('main.virtual_books') }}" class="view-all-btn">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="books-scroll-container">
+        {% for book in virtual_books[:10] %}
+        <div class="book-card-scroll">
+            {% include 'main/book_card_modern.html' %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Categories by Course -->
+{% for category in categories %}
+{% set category_books = books|selectattr('category', 'equalto', category)|list %}
+{% if category_books %}
+<div class="category-section">
+    <div class="category-header">
+        <div class="category-title">
+            <div class="category-icon">📖</div>
+            <span>{{ category }}</span>
+        </div>
+        <a href="{{ url_for('main.books_by_category', category=category) }}" class="view-all-btn">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="books-scroll-container">
+        {% for book in category_books[:10] %}
+        <div class="book-card-scroll">
+            {% include 'main/book_card_modern.html' %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<!-- PDF Reader Modal -->
+<div class="modal fade pdf-reader-modal" id="pdfReaderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfReaderTitle">Book Reader</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="pdf-viewer-container">
+                    <iframe id="pdfViewer" src=""></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openPDFReader(bookId, bookTitle) {
+    const modal = new bootstrap.Modal(document.getElementById('pdfReaderModal'));
+    document.getElementById('pdfReaderTitle').textContent = bookTitle;
+    document.getElementById('pdfViewer').src = `/read-virtual-book/${bookId}`;
+    modal.show();
+}
+
+// Close modal cleanup
+document.getElementById('pdfReaderModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('pdfViewer').src = '';
+});
+</script>
+{% endblock %}

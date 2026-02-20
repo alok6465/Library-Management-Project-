@@ -43,10 +43,29 @@ def edit_book(book_id):
     if request.method == 'POST':
         title = request.form.get('title')
         author = request.form.get('author')
+        
+        # Handle custom category
         category = request.form.get('category')
+        custom_category = request.form.get('custom_category', '').strip()
+        if category == 'CUSTOM' and custom_category:
+            category = custom_category
+        elif not category:
+            category = 'General'
+        
         course = request.form.get('course')
         semester = request.form.get('semester')
         isbn = request.form.get('isbn')
+        
+        # Handle thumbnail upload
+        thumbnail_file = request.files.get('thumbnail')
+        if thumbnail_file and thumbnail_file.filename:
+            from werkzeug.utils import secure_filename
+            upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'thumbnails')
+            os.makedirs(upload_dir, exist_ok=True)
+            filename = secure_filename(thumbnail_file.filename)
+            file_path = os.path.join(upload_dir, filename)
+            thumbnail_file.save(file_path)
+            book.thumbnail = f'/static/thumbnails/{filename}'
         
         if book.is_virtual:
             # Virtual book update
@@ -56,7 +75,6 @@ def edit_book(book_id):
             # Handle file upload
             pdf_file = request.files.get('pdf_file')
             if pdf_file and pdf_file.filename:
-                import os
                 from werkzeug.utils import secure_filename
                 
                 # Create uploads directory if it doesn't exist
@@ -173,6 +191,24 @@ def books_categories():
                          categories=categories,
                          category_stats=category_stats)
 
+@bp.route('/books/category/<category>')
+def books_by_category(category):
+    if category == 'NEW':
+        all_books = Book.query.all()
+        books = [book for book in all_books if book.is_still_new]
+        title = 'New Arrivals'
+    elif category == 'POPULAR':
+        books = Book.query.order_by(Book.copies_total.desc()).all()
+        title = 'Popular Books'
+    else:
+        books = Book.query.filter_by(category=category).all()
+        title = f'{category} Books'
+    
+    return render_template('main/category_books.html', 
+                         title=title, 
+                         books=books, 
+                         category=category)
+
 @bp.route('/emergency-setup')
 def emergency_setup():
     """Emergency route to create admin user"""
@@ -261,7 +297,7 @@ def student_dashboard():
     
     recent_notices = sorted(all_notices + student_specific, key=lambda x: x.created_date, reverse=True)[:5]
     
-    return render_template('main/dashboard_student.html', title='Student Dashboard', 
+    return render_template('main/dashboard_student_modern.html', title='Student Dashboard', 
                          books=books, my_loans=my_loans, my_reservations=my_reservations, 
                          recent_notices=recent_notices, categories=categories, 
                          selected_category=category_filter, selected_type=book_type)
@@ -280,7 +316,7 @@ def admin_dashboard():
     overdue_loans = [loan for loan in active_loans if loan.is_overdue]
     recent_notices = Notice.query.filter_by(created_by=current_user.id).order_by(Notice.created_date.desc()).limit(5).all()
     
-    return render_template('main/dashboard_admin.html', title='Admin Dashboard',
+    return render_template('main/dashboard_admin_modern.html', title='Admin Dashboard',
                          books=books, active_loans=active_loans, overdue_loans=overdue_loans, recent_notices=recent_notices)
 
 @bp.route('/search')
@@ -457,11 +493,31 @@ def add_book():
     if request.method == 'POST':
         title = request.form.get('title')
         author = request.form.get('author')
-        category = request.form.get('category', 'General')
+        
+        # Handle custom category
+        category = request.form.get('category')
+        custom_category = request.form.get('custom_category', '').strip()
+        if category == 'CUSTOM' and custom_category:
+            category = custom_category
+        elif not category:
+            category = 'General'
+        
         course = request.form.get('course')
         semester = request.form.get('semester')
         isbn = request.form.get('isbn')
         is_virtual = request.form.get('is_virtual') == 'on'
+        
+        # Handle thumbnail upload
+        thumbnail_path = None
+        thumbnail_file = request.files.get('thumbnail')
+        if thumbnail_file and thumbnail_file.filename:
+            from werkzeug.utils import secure_filename
+            upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'thumbnails')
+            os.makedirs(upload_dir, exist_ok=True)
+            filename = secure_filename(thumbnail_file.filename)
+            file_path = os.path.join(upload_dir, filename)
+            thumbnail_file.save(file_path)
+            thumbnail_path = f'/static/thumbnails/{filename}'
         
         # New Book System
         is_new_book = request.form.get('is_new_book') == 'on'
@@ -481,14 +537,9 @@ def add_book():
             pdf_path = None
             
             if pdf_file and pdf_file.filename:
-                import os
                 from werkzeug.utils import secure_filename
-                
-                # Create uploads directory if it doesn't exist
                 upload_dir = os.path.join(os.getcwd(), 'app', 'static', 'virtual_books')
                 os.makedirs(upload_dir, exist_ok=True)
-                
-                # Save file
                 filename = secure_filename(pdf_file.filename)
                 file_path = os.path.join(upload_dir, filename)
                 pdf_file.save(file_path)
@@ -501,6 +552,7 @@ def add_book():
                 course=course,
                 semester=semester,
                 isbn=isbn,
+                thumbnail=thumbnail_path,
                 is_virtual=True,
                 virtual_price=virtual_price,
                 download_price=download_price,
@@ -525,6 +577,7 @@ def add_book():
                 course=course,
                 semester=semester,
                 isbn=isbn,
+                thumbnail=thumbnail_path,
                 is_virtual=False,
                 copies_total=copies, 
                 copies_available=0 if is_prebooking else copies,
@@ -895,7 +948,13 @@ def manage_categories():
     
     categories = db.session.query(Book.category).distinct().all()
     categories = [cat[0] for cat in categories if cat[0]]
-    return render_template('main/manage_categories.html', title='Manage Categories', categories=categories)
+    
+    category_counts = {}
+    for category in categories:
+        category_counts[category] = Book.query.filter_by(category=category).count()
+    
+    return render_template('main/manage_categories.html', title='Manage Categories', 
+                         categories=categories, category_counts=category_counts)
 
 @bp.route('/manage-reservations')
 @login_required
@@ -1454,7 +1513,7 @@ def cancel_reservation(reservation_id):
 @bp.route('/virtual-books')
 def virtual_books():
     virtual_books = Book.query.filter_by(is_virtual=True).all()
-    return render_template('main/virtual_books.html', title='Virtual Books', books=virtual_books)
+    return render_template('main/category_books.html', title='Virtual Books', books=virtual_books, category='Virtual')
 @login_required
 def prebook_book(book_id):
     book = Book.query.get_or_404(book_id)

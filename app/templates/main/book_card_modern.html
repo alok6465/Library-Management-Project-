@@ -1,0 +1,61 @@
+<div class="book-card-modern">
+    {% if book.thumbnail %}
+    <img src="{{ book.thumbnail }}" alt="{{ book.title }}" class="book-thumbnail">
+    {% else %}
+    <div class="book-thumbnail-placeholder">
+        {% if book.is_virtual %}
+        <i class="bi bi-file-earmark-pdf"></i>
+        {% else %}
+        <i class="bi bi-book"></i>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="book-card-body">
+        <h6 class="book-title-modern">{{ book.title }}</h6>
+        <p class="book-author-modern">{{ book.author }}</p>
+        
+        <div class="book-badges">
+            {% if book.is_still_new %}
+            <span class="badge badge-modern bg-success">🆕 NEW</span>
+            {% endif %}
+            
+            {% if book.is_virtual %}
+            <span class="badge badge-modern bg-info">💻 Virtual</span>
+            {% elif book.copies_available > 0 %}
+            <span class="badge badge-modern bg-success">✓ Available</span>
+            {% else %}
+            <span class="badge badge-modern bg-danger">✗ Unavailable</span>
+            {% endif %}
+            
+            {% if book.category %}
+            <span class="badge badge-modern bg-secondary">{{ book.category }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="book-actions">
+            {% if book.is_virtual %}
+                <button onclick="openPDFReader({{ book.id }}, '{{ book.title }}')" 
+                        class="btn btn-sm btn-modern btn-modern-primary w-100">
+                    <i class="bi bi-eye"></i> Read Now
+                </button>
+                <a href="{{ url_for('main.download_virtual_book', book_id=book.id) }}" 
+                   class="btn btn-sm btn-outline-primary w-100">
+                    <i class="bi bi-download"></i> Download
+                </a>
+            {% else %}
+                {% if book.copies_available > 0 %}
+                <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" 
+                   class="btn btn-sm btn-modern btn-modern-primary w-100">
+                    <i class="bi bi-bookmark-plus"></i> Borrow Book
+                </a>
+                {% else %}
+                <a href="{{ url_for('main.reserve_book', book_id=book.id) }}" 
+                   class="btn btn-sm btn-warning w-100">
+                    <i class="bi bi-clock"></i> Reserve (24h)
+                </a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
