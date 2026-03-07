@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import render_template, redirect, url_for, flash, request, jsonify, send_file, current_app
+from flask import render_template, redirect, url_for, flash, request, jsonify, send_file, current_app, session
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.main import bp
@@ -308,6 +308,12 @@ def student_dashboard():
                          recent_notices=recent_notices, categories=categories, 
                          selected_category=category_filter, selected_type=book_type,
                          upcoming_festival=upcoming_festival)
+
+@bp.route('/mark-festival-shown', methods=['POST'])
+@login_required
+def mark_festival_shown():
+    session['festival_shown'] = True
+    return jsonify({'success': True})
 
 @bp.route('/admin-dashboard')
 @login_required

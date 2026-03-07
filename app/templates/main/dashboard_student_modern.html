@@ -214,7 +214,7 @@
 </div>
 
 <!-- Festival Popup Modal -->
-{% if upcoming_festival %}
+{% if upcoming_festival and not session.get('festival_shown') %}
 <div class="modal fade" id="festivalPopup" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
@@ -282,10 +282,11 @@ document.getElementById('pdfReaderModal').addEventListener('hidden.bs.modal', fu
 });
 
 // Festival Popup on Login
-{% if upcoming_festival %}
+{% if upcoming_festival and not session.get('festival_shown') %}
 window.addEventListener('DOMContentLoaded', function() {
     const festivalModal = new bootstrap.Modal(document.getElementById('festivalPopup'));
     festivalModal.show();
+    fetch('/mark-festival-shown', {method: 'POST'});
 });
 {% endif %}
 </script>

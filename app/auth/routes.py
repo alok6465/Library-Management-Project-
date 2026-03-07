@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, current_user, login_required
 from app.extensions import db
 from app.auth import bp
@@ -25,6 +25,7 @@ def student_login():
                 flash('This is Student Login. Please use Admin Login for admin access.', 'warning')
                 return render_template('auth/student_login.html', title='Student Login', form=form)
             login_user(user)
+            session['festival_shown'] = False
             next_page = request.args.get('next')
             flash(f'Welcome back, {user.name}!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
@@ -96,6 +97,7 @@ def register():
 @bp.route('/logout')
 @login_required
 def logout():
+    session.pop('festival_shown', None)
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
