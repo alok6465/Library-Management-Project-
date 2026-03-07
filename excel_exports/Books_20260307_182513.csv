@@ -1,7 +1,7 @@
 ID,Title,Author,Category,Course,Semester,ISBN,Total Copies,Available Copies,Borrowed Copies
 1,Programming with C,E. Balagurusamy,Programming,BSC CS,Sem 1,978-0070141698,5,5,0
 2,Digital Electronics,R.P. Jain,Electronics,BSC CS,Sem 1,978-0070648906,4,4,0
-3,Mathematics I,B.S. Grewal,Mathematics,BSC CS,Sem 1,978-8173716751,6,6,0
+3,Mathematics I,B.S. Grewal,Mathematics,BSC CS,Sem 1,978-8173716751,6,5,1
 4,Computer Fundamentals,P.K. Sinha,Computer Science,BSC CS,Sem 1,978-8176567640,6,6,0
 5,Data Structures Using C,Reema Thareja,Programming,BSC CS,Sem 2,978-0198099307,6,6,0
 6,Computer Organization,Carl Hamacher,Computer Architecture,BSC CS,Sem 2,978-0073380650,3,3,0
@@ -50,5 +50,5 @@ ID,Title,Author,Category,Course,Semester,ISBN,Total Copies,Available Copies,Borr
 49,Clean Code,Robert Martin,Programming,All Courses,Reference,978-0132350884,4,4,0
 50,Computer Science Illuminated,Nell Dale,Computer Science,All Courses,Reference,978-1284155617,3,3,0
 51,The Pragmatic Programmer,Andrew Hunt,Programming,All Courses,Reference,978-0135957059,2,0,2
-55,The silent patient ,Alex Michaelides,General,Story Book ,,,1,1,0
+55,The silent patient ,Alex Michaelides,General,Story Book ,,,1,2,-1
 56,One Piece V0001 ,Eiichiro Oda,MANGA,,,,1,1,0
