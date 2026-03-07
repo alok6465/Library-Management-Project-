@@ -754,6 +754,17 @@ def request_extension(loan_id):
     
     return render_template('main/request_extension.html', title='Request Extension', loan=loan)
 
+@bp.route('/my-extension-requests')
+@login_required
+def my_extension_requests():
+    my_requests = ExtensionRequest.query.join(Loan).filter(
+        Loan.user_id == current_user.id
+    ).order_by(ExtensionRequest.request_date.desc()).all()
+    
+    return render_template('main/my_extensions.html', 
+                         title='My Extension Requests',
+                         requests=my_requests)
+
 @bp.route('/manage-extensions')
 @login_required
 def manage_extensions():
